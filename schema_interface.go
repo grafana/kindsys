@@ -2,7 +2,6 @@ package kindsys
 
 import (
 	"fmt"
-	"sync"
 
 	"cuelang.org/go/cue"
 )
@@ -56,26 +55,25 @@ func (s SchemaInterface) IsGroup() bool {
 	return s.group
 }
 
-func FindSchemaInterface(name string, fw cue.Value) (SchemaInterface, error) {
-	sl, has := SchemaInterfaces(nil, fw)[name]
+func FindSchemaInterface(name string) (SchemaInterface, error) {
+	sl, has := SchemaInterfaces(nil)[name]
 	if !has {
 		return SchemaInterface{}, fmt.Errorf("unsupported slot: %s", name)
 	}
 	return sl, nil
 }
 
-var defaultIfaces map[string]SchemaInterface
-var onceIfaces sync.Once
-
 // SchemaInterfaces returns a map of all [SchemaInterface]s defined by
 // the given framework.
 //
 // TODO link to framework docs
-func SchemaInterfaces(ctx *cue.Context, fw cue.Value) map[string]SchemaInterface {
-	return doSchemaInterfaces(ctx, fw)
+func SchemaInterfaces(ctx *cue.Context) map[string]SchemaInterface {
+	return doSchemaInterfaces(ctx)
 }
 
-func doSchemaInterfaces(ctx *cue.Context, fw cue.Value) map[string]SchemaInterface {
+func doSchemaInterfaces(ctx *cue.Context) map[string]SchemaInterface {
+	fw := CUEFramework(ctx)
+
 	defs := fw.LookupPath(cue.ParsePath("schemaInterfaces"))
 	if !defs.Exists() {
 		panic("schemaInterfaces key does not exist in kindsys framework")

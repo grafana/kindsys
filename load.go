@@ -4,19 +4,52 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sync"
+	"testing/fstest"
 
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/build"
+	"cuelang.org/go/cue/cuecontext"
 	"cuelang.org/go/cue/errors"
-	"github.com/grafana/thema"
 	"github.com/grafana/thema/load"
+	"github.com/yalue/merged_fs"
 )
 
-func LoadInstance(pkg, relpath string, fs fs.FS) (*build.Instance, error) {
-	if pkg != "" {
-		return load.InstanceWithThema(fs, relpath, load.Package(pkg))
+var defaultFramework cue.Value
+var fwOnce sync.Once
+var ctx = cuecontext.New()
+
+// cueContext returns a singleton instance of [cue.Context].
+func cueContext() *cue.Context {
+	return ctx
+}
+
+func init() {
+	loadpFrameworkOnce()
+}
+
+func loadpFrameworkOnce() {
+	fwOnce.Do(func() {
+		var err error
+		defaultFramework, err = doLoadFrameworkCUE(cueContext())
+		if err != nil {
+			panic(err)
+		}
+		ctx = cuecontext.New()
+	})
+}
+
+func doLoadFrameworkCUE(ctx *cue.Context) (cue.Value, error) {
+	v, err := BuildInstance(ctx, ".", "kindsys", nil)
+	if err != nil {
+		return v, err
 	}
-	return load.InstanceWithThema(fs, relpath)
+
+	if err = v.Validate(cue.Concrete(false), cue.All()); err != nil {
+		return cue.Value{}, fmt.Errorf("kindsys framework loaded cue.Value has err: %w", err)
+	}
+
+	return v, nil
 }
 
 func BuildInstance(ctx *cue.Context, relpath string, pkg string, overlay fs.FS) (cue.Value, error) {
@@ -26,7 +59,7 @@ func BuildInstance(ctx *cue.Context, relpath string, pkg string, overlay fs.FS) 
 	}
 
 	if ctx == nil {
-		return cue.Value{}, fmt.Errorf("nil cue context")
+		ctx = cueContext()
 	}
 
 	v := ctx.BuildInstance(bi)
@@ -36,15 +69,99 @@ func BuildInstance(ctx *cue.Context, relpath string, pkg string, overlay fs.FS) 
 	return v, nil
 }
 
+// LoadInstance returns a build.Instance populated with the CueSchemaFS at the root and
+// an optional overlay filesystem.
+func LoadInstance(relpath string, pkg string, overlay fs.FS) (*build.Instance, error) {
+	relpath = filepath.ToSlash(relpath)
+
+	var f fs.FS = CueSchemaFS
+	var err error
+	if overlay != nil {
+		f, err = prefixWithCUE(relpath, overlay)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if pkg != "" {
+		return load.InstanceWithThema(f, relpath, load.Package(pkg))
+	}
+	return load.InstanceWithThema(f, relpath)
+}
+
+// prefixWithCUE constructs an fs.FS that merges the provided fs.FS with the
+// embedded FS containing kindsys core CUE files, CueSchemaFS. The provided
+// prefix should be the relative path from the repository root to the directory
+// root of the provided inputfs.
+//
+// The returned fs.FS is suitable for passing to a CUE loader, such as
+// [load.InstanceWithThema].
+func prefixWithCUE(prefix string, inputfs fs.FS) (fs.FS, error) {
+	m, err := prefixFS(prefix, inputfs)
+	if err != nil {
+		return nil, err
+	}
+	return merged_fs.NewMergedFS(m, CueSchemaFS), nil
+}
+
+// TODO such a waste, replace with stateless impl that just transforms paths on the fly
+func prefixFS(prefix string, fsys fs.FS) (fs.FS, error) {
+	m := make(fstest.MapFS)
+
+	prefix = filepath.FromSlash(prefix)
+	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		b, err := fs.ReadFile(fsys, filepath.ToSlash(path))
+		if err != nil {
+			return err
+		}
+		// fstest can recognize only forward slashes.
+		m[filepath.ToSlash(filepath.Join(prefix, path))] = &fstest.MapFile{Data: b}
+		return nil
+	})
+	return m, err
+}
+
+// CUEFramework returns a cue.Value representing all the kindsys framework raw
+// CUE files.
+//
+// For low-level use in constructing other types and APIs, while still letting
+// us define all the frameworky CUE bits in a single package. Other Go types
+// make the constructs in the returned cue.Value easy to use.
+//
+// Calling this with a nil [cue.Context] (the singleton returned from
+// [CUEContext]) will memoize certain CUE operations. Prefer passing nil unless
+// a different cue.Context is specifically required.
+func CUEFramework(ctx *cue.Context) cue.Value {
+	if ctx == nil || ctx == cueContext() {
+		// Ensure framework is loaded, even if this func is called
+		// from an init() somewhere.
+		loadpFrameworkOnce()
+		return defaultFramework
+	}
+	// Error guaranteed to be nil here because erroring would have caused init() to panic
+	v, _ := doLoadFrameworkCUE(ctx) // nolint:errcheck
+	return v
+}
+
 // ToKindProps takes a cue.Value expected to represent a kind of the category
 // specified by the type parameter and populates the Go type from the cue.Value.
-func ToKindProps[T KindProperties](fw cue.Value, v cue.Value) (T, error) {
+func ToKindProps[T KindProperties](v cue.Value) (T, error) {
 	props := new(T)
 	if !v.Exists() {
 		return *props, ErrValueNotExist
 	}
 
+	fw := CUEFramework(v.Context())
 	var kdef cue.Value
+
 	anyprops := any(*props).(SomeKindProperties)
 	switch anyprops.(type) {
 	case CoreProperties:
@@ -69,120 +186,4 @@ func ToKindProps[T KindProperties](fw cue.Value, v cue.Value) (T, error) {
 	}
 
 	return *props, nil
-}
-
-// SomeDef represents a single kind definition, having been loaded and
-// validated by a func such as [LoadCoreKindDef].
-//
-// The underlying type of the Properties field indicates the category of kind.
-type SomeDef struct {
-	// V is the cue.Value containing the entire Kind definition.
-	V cue.Value
-	// Properties contains the kind's declarative non-schema properties.
-	Properties SomeKindProperties
-}
-
-// BindKindLineage binds the lineage for the kind definition.
-//
-// For kinds with a corresponding Go type, it is left to the caller to associate
-// that Go type with the lineage returned from this function by a call to
-// [thema.BindType].
-func (def SomeDef) BindKindLineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
-	if rt == nil {
-		return &thema.UnaryLineage{}, fmt.Errorf("nil thema.Runtime")
-	}
-	return thema.BindLineage(def.V.LookupPath(cue.MakePath(cue.Str("lineage"))), rt, opts...)
-}
-
-// IsCore indicates whether the represented kind is a core kind.
-func (def SomeDef) IsCore() bool {
-	_, is := def.Properties.(CoreProperties)
-	return is
-}
-
-// IsCustom indicates whether the represented kind is a custom kind.
-func (def SomeDef) IsCustom() bool {
-	_, is := def.Properties.(CustomProperties)
-	return is
-}
-
-// IsComposable indicates whether the represented kind is a composable kind.
-func (def SomeDef) IsComposable() bool {
-	_, is := def.Properties.(ComposableProperties)
-	return is
-}
-
-// Def represents a single kind definition, having been loaded and validated by
-// a func such as [LoadCoreKindDef].
-//
-// Its type parameter indicates the category of kind.
-//
-// Thema lineages in the contained definition have not yet necessarily been
-// validated.
-type Def[T KindProperties] struct {
-	// V is the cue.Value containing the entire Kind definition.
-	V cue.Value
-	// Properties contains the kind's declarative non-schema properties.
-	Properties T
-}
-
-// Some converts the typed Def to the equivalent typeless SomeDef.
-func (def Def[T]) Some() SomeDef {
-	return SomeDef{
-		V:          def.V,
-		Properties: any(def.Properties).(SomeKindProperties),
-	}
-}
-
-// LoadCoreKindDef loads and validates a core kind definition of the kind category
-// indicated by the type parameter. On success, it returns a [Def] which
-// contains the entire contents of the kind definition.
-//
-// declpath is the path to the directory containing the core kind definition,
-// relative to the grafana/grafana root. For example, dashboards are in
-// "kinds/dashboard".
-//
-// The .cue file bytes containing the core kind definition will be retrieved
-// from the central embedded FS, [grafana.CueSchemaFS]. If desired (e.g. for
-// testing), an optional fs.FS may be provided via the overlay parameter, which
-// will be merged over [grafana.CueSchemaFS]. But in typical circumstances,
-// overlay can and should be nil.
-//
-// This is a low-level function, primarily intended for use in code generation.
-// For representations of core kinds that are useful in Go programs at runtime,
-// see ["github.com/grafana/grafana/pkg/registry/corekind"].
-func LoadCoreKindDef(defpath string, ctx *cue.Context, overlay fs.FS) (Def[CoreProperties], error) {
-	none := Def[CoreProperties]{}
-	vk, err := BuildInstance(ctx, defpath, "kind", overlay)
-	if err != nil {
-		return none, err
-	}
-
-	fw, err := LoadFrameworkCUE(ctx, defpath)
-	if err != nil {
-		return none, err
-	}
-
-	props, err := ToKindProps[CoreProperties](vk, fw)
-	if err != nil {
-		return none, err
-	}
-
-	return Def[CoreProperties]{
-		V:          vk,
-		Properties: props,
-	}, nil
-}
-
-func LoadFrameworkCUE(ctx *cue.Context, fp string) (cue.Value, error) {
-	v, err := BuildInstance(ctx, filepath.Join(fp, "kindsys"), "kindsys", nil)
-	if err != nil {
-		return v, err
-	}
-
-	if err = v.Validate(cue.Concrete(false), cue.All()); err != nil {
-		return cue.Value{}, fmt.Errorf("kindsys framework loaded cue.Value has err: %w", err)
-	}
-
-	return v, nil
 }
