@@ -100,12 +100,12 @@ schemaInterfaces: {
 			// though a panel without any options may specify an empty struct.
 			//
 			// Currently mapped to #Panel.options within the dashboard schema.
-			PanelOptions: {}
+			Options: {}
 
 			// Plugin-specific custom field properties. Optional.
 			//
 			// Currently mapped to #Panel.fieldConfig.defaults.custom within the dashboard schema.
-			PanelFieldConfig?: {}
+			FieldConfig?: {}
 		}
 
 		pluginTypes: ["panel"]
