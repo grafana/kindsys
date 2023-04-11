@@ -2,7 +2,6 @@ package validation
 
 import (
 	"cuelang.org/go/cue"
-	"cuelang.org/go/cue/ast"
 	"fmt"
 	"strings"
 )
@@ -11,69 +10,83 @@ import (
 // #Kind: _
 // Kind: _ @cuetsy(*)
 func EnsureNoExportedKindName(value cue.Value) error {
-	lin := lineage(value.Source())
+	sch := schema(value)
 
-	position, found := searchKindKeyword(lin)
-	if found {
-		return fmt.Errorf("schema must not use `Kind` keyword present at %s", position)
+	var pos []string
+	Walk(sch, func(v cue.Value) bool {
+		label, _ := v.Label()
+		if label == "#Kind" || label == "Kind" {
+			pos = append(pos, v.Pos().String())
+			return false
+		}
+
+		return true
+	}, nil)
+
+	if len(pos) != 0 {
+		return fmt.Errorf("schema must not use `Kind` keyword present at %s", strings.Join(pos, "; "))
 	}
 
 	return nil
 }
 
-func searchKindKeyword(lin ast.Node) (string, bool) {
-	var pos string
-	var found bool
+func schema(v cue.Value) cue.Value {
+	var sch cue.Value
 
-	ast.Walk(lin, func(n ast.Node) bool {
-		field, is := n.(*ast.Field)
-		if !is {
+	Walk(v, func(v cue.Value) bool {
+		label, _ := v.Label()
+
+		if label != "schemas" {
 			return true
 		}
 
-		label, is := field.Label.(*ast.Ident)
-		if !is {
-			return true
-		}
-
-		var isAttr bool
-		for _, a := range field.Attrs {
-			if strings.Contains(a.Text, "@cuetsy") {
-				isAttr = true
-			}
-		}
-		if label.String() == "#Kind" || (label.String() == "Kind" && isAttr) {
-			found = true
-			pos = label.Pos().Position().String()
-			return false
-		}
-		return true
-	}, nil)
-
-	return pos, found
-}
-
-func lineage(node ast.Node) ast.Node {
-	var lin ast.Node
-
-	ast.Walk(node, func(n ast.Node) bool {
-		field, is := n.(*ast.Field)
-		if !is {
-			return true
-		}
-
-		label, is := field.Label.(*ast.Ident)
-		if !is {
-			return true
-		}
-
-		if label.String() != "lineage" {
-			return true
-		}
-
-		lin = n
+		sch = v
 		return false
 	}, nil)
 
-	return lin
+	return sch
+}
+
+// Copied from https://github.com/hofstadter-io/cuetils/
+
+// Walk is an alternative to cue.Value.Walk which handles more field types
+// You can customize this with your own options
+func Walk(v cue.Value, before func(cue.Value) bool, after func(cue.Value), options ...cue.Option) {
+
+	// call before and possibly stop recursion
+	if before != nil && !before(v) {
+		return
+	}
+
+	// possibly recurse
+	switch v.IncompleteKind() {
+	case cue.StructKind:
+		if options == nil {
+			options = defaultWalkOptions
+		}
+		s, _ := v.Fields(options...)
+
+		for s.Next() {
+			Walk(s.Value(), before, after, options...)
+		}
+
+	case cue.ListKind:
+		l, _ := v.List()
+		for l.Next() {
+			Walk(l.Value(), before, after, options...)
+		}
+	}
+
+	if after != nil {
+		after(v)
+	}
+}
+
+var defaultWalkOptions = []cue.Option{
+	cue.Attributes(true),
+	cue.Concrete(false),
+	cue.Definitions(true),
+	cue.Hidden(true),
+	cue.Optional(true),
+	cue.Docs(true),
 }
