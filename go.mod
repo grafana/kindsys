@@ -3,7 +3,7 @@ module github.com/grafana/kindsys
 go 1.19
 
 require (
-	cuelang.org/go v0.5.0-beta.2
+	cuelang.org/go v0.5.0
 	github.com/grafana/thema v0.0.0-20230302221249-6952e4a999b7
 	github.com/yalue/merged_fs v1.2.2
 	k8s.io/apiextensions-apiserver v0.26.2
