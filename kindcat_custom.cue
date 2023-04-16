@@ -27,7 +27,11 @@ CommonMetadata: {
     updateTimestamp: string & time.Time
     createdBy: string
     updatedBy: string
+
 	// TODO: additional metadata fields?
+
+	// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
+	extraFields: {...}
 }
 
 // Custom specifies the kind category for plugin-defined arbitrary types.
@@ -39,12 +43,6 @@ CommonMetadata: {
 // kinds - the same API patterns (and clients) used to interact with k8s CustomResources.
 Custom: S={
 	_sharedKind
-
-	// appID is the unique identifier of the app which is the owner of this Custom kind.
-	// TODO: should this just be pluginID? Is there a world where an app and plugin may not share the same ID?
-	// The practical reason to have it different is to allow the appID to be shorter than the pluginID as the group
-	// is generated from the appID, and <kind name>+<group> cannot exceed 63 characters in kubernetes.
-	appID: =~"^([a-z][a-z0-9-]{0,61}[a-z0-9])$"
 
 	lineage: { 
 		name: S.machineName 
@@ -78,8 +76,28 @@ Custom: S={
 	// TODO: rather than `crd`, should this trait be something more generic, as it really indicates more if a resource should be available in a
 	// kubernetes-compatible APIServer, not specifically as CRD (though that _is_ an implementation)
 	crd?: {
+		// groupOverride is an override that is used in the crd trait if present.
+		// If left empty, plugin.id is used to generate the group name
+		groupOverride?: =~"^([a-z][a-z0-9-]{0,32}[a-z0-9])$"
+
+		// _computedGroups is a list of groups computed from information in the plugin trait.
+		// The first element is always the "most correct" one to use.
+		// This field could be inlined into `group`, but is separate for clarity.
+		_computedGroups: [
+			if S.crd.groupOverride != _|_ {
+				strings.ToLower(S.crd.groupOverride) + ".apps.grafana.com",
+			}
+			strings.ToLower(strings.Replace(S.plugin.id, "-","_",-1)) + ".apps.grafana.com"
+		]
+
 		// group is used as the CRD group name in the GVK.
-		group: strings.ToLower(S.appID) + ".apps.grafana.com"
+		// It is computed from information in the plugin trait, using plugin.id unless groupName is specified.
+		// The length of the computed group + the length of the name (plus 1) cannot exceed 63 characters for a valid CRD.
+		// This length restriction is checked via _computedGroupKind
+		group: _computedGroups[0] & =~"^([a-z][a-z0-9_.]{0,61}[a-z0-9])$"
+
+		// _computedGroupKind checks the validity of the CRD kind + group
+		_computedGroupKind: S.machineName + "." + group =~"^([a-z][a-z0-9_.]{0,61}[a-z0-9])$"
 
 		// scope determines whether resources of this kind exist globally ("Cluster") or
 		// within Kubernetes namespaces.
@@ -88,6 +106,13 @@ Custom: S={
 		// deepCopy determines whether a generic implementation of copying should be
 		// generated, or a passthrough call to a Go function.
 		//   deepCopy: *"generic" | "passthrough"
+	}
+
+	// plugin contains data about the plugin which owns this custom kind
+	// TODO: should this be top-level, instead of a trait?
+	plugin: {
+		// id is the unique ID of the plugin
+		id: =~"^([A-Za-z][a-z0-9-]*[a-z0-9])$"
 	}
 
 	// codegen contains properties specific to generating code using tooling
