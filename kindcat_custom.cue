@@ -44,6 +44,12 @@ CommonMetadata: {
 Custom: S={
 	_sharedKind
 
+	// pluginID is the unique identifier of the plugin which owns this Custom kind
+	pluginID: =~"^([a-z][a-z0-9-]*[a-z0-9])$"
+
+	// isCRD is true if the `crd` trait is present in the kind.
+	isCRD: S.crd != _|_
+
 	lineage: { 
 		name: S.machineName 
 		// If the crd trait is defined, the schemas in the lineage must follow the format:
@@ -52,7 +58,7 @@ Custom: S={
 		//     "spec": {...}
 		//     "status": {...}
 		// }
-		if S.crd != _|_ {
+		if S.isCRD {
 			joinSchema: {
 				// metadata contains embedded CommonMetadata and can be extended with custom string fields
 				// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
@@ -83,7 +89,27 @@ Custom: S={
 					[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
 				}
 				spec: {...}
-				status: {...}
+				status: {
+					#OperatorState: {
+						// lastEvaluation is the ResourceVersion last evaluated
+						lastEvaluation: string
+						// state describes the state of the lastEvaluation.
+						// It is limited to three possible states for machine evaluation.
+						state: "success" | "in_progress" | "failed"
+						// descriptiveState is an optional more descriptive state field which has no requirements on format
+						descriptiveState?: string
+						// details contains any extra information that is operator-specific
+						details?: {...}
+					}
+					// operatorStates is a map of operator ID to operator state evaluations.
+					// Any operator which consumes this kind SHOULD add its state evaluation information to this field.
+					operatorStates?: {
+						[string]: #OperatorState
+					}
+					// additionalFields is reserved for future use
+					additionalFields: {...}
+					...
+				}
 			}
 		}
 	}
@@ -130,10 +156,10 @@ Custom: S={
 	}
 
 	// plugin contains data about the plugin which owns this custom kind
-	// TODO: should this be top-level, instead of a trait?
 	plugin: {
 		// id is the unique ID of the plugin
-		id: =~"^([A-Za-z][a-z0-9-]*[a-z0-9])$"
+		id: S.pluginID
+		// TODO: additional info?
 	}
 
 	// codegen contains properties specific to generating code using tooling
