@@ -118,7 +118,7 @@ Custom: S={
 		group: _computedGroups[0] & =~"^([a-z][a-z0-9_.]{0,61}[a-z0-9])$"
 
 		// _computedGroupKind checks the validity of the CRD kind + group
-		_computedGroupKind: S.machineName + "." + group =~"^([a-z][a-z0-9_.]{0,61}[a-z0-9])$"
+		_computedGroupKind: S.machineName + "." + group & =~"^([a-z][a-z0-9_.]{0,63}[a-z0-9])$"
 
 		// scope determines whether resources of this kind exist globally ("Cluster") or
 		// within Kubernetes namespaces.
