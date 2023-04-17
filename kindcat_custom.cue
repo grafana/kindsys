@@ -105,18 +105,19 @@ Custom: S={
 	isCRD: S.crd != _|_
 
 	lineage: { 
-		name: S.machineName 
+		name: S.machineName
+	}
+	lineageIsGroup: false
+
+	if isCRD {
 		// If the crd trait is defined, the schemas in the lineage must follow the format:
 		// {
 		//     "metadata": CommonMetadata & {...string}
 		//     "spec": {...}
 		//     "status": {...}
 		// }
-		if S.isCRD {
-			joinSchema: _crdSchema
-		}
+		lineage: joinSchema: _crdSchema
 	}
-	lineageIsGroup: false
 
 	// crd contains properties specific to converting this kind to a Kubernetes CRD.
 	// Unlike in Core, crd is optional and is used as a signaling mechanism for whether the kind is intended to be registered as a Kubernetes CRD 
