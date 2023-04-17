@@ -40,14 +40,8 @@ _crdSchema: {
 	// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
 	// without extenal reference as using the CommonMetadata reference breaks thema codegen.
 	metadata: {
-		uid: string
-		creationTimestamp: string & time.Time
-		deletionTimestamp?: string & time.Time
-		finalizers: [...string]
-		resourceVersion: string
-		labels: {
-			[string]: string
-		}
+		_kubeObjectMetadata
+		
 		updateTimestamp: string & time.Time
 		createdBy: string
 		updatedBy: string
@@ -138,7 +132,7 @@ Custom: S={
 			if S.crd.groupOverride != _|_ {
 				strings.ToLower(S.crd.groupOverride) + ".apps.grafana.com",
 			}
-			strings.ToLower(strings.Replace(S.plugin.id, "-","_",-1)) + ".apps.grafana.com"
+			strings.ToLower(strings.Replace(S.pluginID, "-","_",-1)) + ".apps.grafana.com"
 		]
 
 		// group is used as the CRD group name in the GVK.
@@ -153,17 +147,6 @@ Custom: S={
 		// scope determines whether resources of this kind exist globally ("Cluster") or
 		// within Kubernetes namespaces.
 		scope: "Cluster" | *"Namespaced"
-
-		// deepCopy determines whether a generic implementation of copying should be
-		// generated, or a passthrough call to a Go function.
-		//   deepCopy: *"generic" | "passthrough"
-	}
-
-	// plugin contains data about the plugin which owns this custom kind
-	plugin: {
-		// id is the unique ID of the plugin
-		id: S.pluginID
-		// TODO: additional info?
 	}
 
 	// codegen contains properties specific to generating code using tooling
