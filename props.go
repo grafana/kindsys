@@ -41,6 +41,18 @@ func (m CoreProperties) Common() CommonProperties {
 type CustomProperties struct {
 	CommonProperties
 	CurrentVersion thema.SyntacticVersion `json:"currentVersion"`
+	CRD            struct {
+		Group         string  `json:"group"`
+		Scope         string  `json:"scope"`
+		GroupOverride *string `json:"groupOverride"`
+	} `json:"crd"`
+	Plugin struct {
+		ID string `json:"id"`
+	} `json:"plugin"`
+	Codegen struct {
+		Frontend bool `json:"frontend"`
+		Backend  bool `json:"backend"`
+	} `json:"codegen"`
 }
 
 func (m CustomProperties) _private() {}

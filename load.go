@@ -187,3 +187,43 @@ func ToKindProps[T KindProperties](v cue.Value) (T, error) {
 
 	return *props, nil
 }
+
+// ToDef takes a cue.Value expected to represent a kind of the category
+// specified by the type parameter and populates a Def from the CUE value.
+// The cue.Value in Def.V will be the unified value of the parameter cue.Value
+// and the kindsys CUE kind (Core, Custom, Composable).
+func ToDef[T KindProperties](v cue.Value) (Def[T], error) {
+	def := Def[T]{}
+	props := new(T)
+	if !v.Exists() {
+		return def, ErrValueNotExist
+	}
+
+	fw := CUEFramework(v.Context())
+	var kdef cue.Value
+
+	anyprops := any(*props).(SomeKindProperties)
+	switch anyprops.(type) {
+	case CoreProperties:
+		kdef = fw.LookupPath(cue.MakePath(cue.Str("Core")))
+	case CustomProperties:
+		kdef = fw.LookupPath(cue.MakePath(cue.Str("Custom")))
+	case ComposableProperties:
+		kdef = fw.LookupPath(cue.MakePath(cue.Str("Composable")))
+	default:
+		// unreachable so long as all the possibilities in KindProperties have switch branches
+		panic("unreachable")
+	}
+
+	def.V = v.Unify(kdef)
+	if def.V.Err() != nil {
+		return def, errors.Wrap(errors.Promote(ErrValueNotAKind, ""), def.V.Err())
+	}
+
+	if err := def.V.Decode(props); err != nil {
+		// Should only be reachable if CUE and Go framework types have diverged
+		panic(errors.Details(err, nil))
+	}
+	def.Properties = *props
+	return def, nil
+}

@@ -12,7 +12,7 @@ _kubeObjectMetadata: {
     uid: string
     creationTimestamp: string & time.Time
     deletionTimestamp?: string & time.Time
-    finalizers: [string]
+    finalizers: [...string]
     resourceVersion: string
     labels: {
         [string]: string
@@ -54,12 +54,33 @@ Custom: S={
 		// }
 		if S.crd != _|_ {
 			joinSchema: {
-				metadata: CommonMetadata & {
+				// metadata contains embedded CommonMetadata and can be extended with custom string fields
+				// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
+				// without extenal reference as using the CommonMetadata reference breaks thema codegen.
+				metadata: {
+					uid: string
+					creationTimestamp: string & time.Time
+					deletionTimestamp?: string & time.Time
+					finalizers: [...string]
+					resourceVersion: string
+					labels: {
+						[string]: string
+					}
+					updateTimestamp: string & time.Time
+					createdBy: string
+					updatedBy: string
+
+					// TODO: additional metadata fields?
+					// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
+
+					// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
+					extraFields: {...}
+				} & {
 					// All extensions to this metadata need to have string values (for APIServer encoding-to-annotations purposes)
 					// Can't use this as it's not yet enforced CUE:
 					//...string
 					// Have to do this gnarly regex instead
-					[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy)$"]: string
+					[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
 				}
 				spec: {...}
 				status: {...}
