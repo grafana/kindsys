@@ -34,6 +34,60 @@ CommonMetadata: {
 	extraFields: {...}
 }
 
+// _crdSchema is the schema format for a CRD.
+_crdSchema: {
+	// metadata contains embedded CommonMetadata and can be extended with custom string fields
+	// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
+	// without extenal reference as using the CommonMetadata reference breaks thema codegen.
+	metadata: {
+		uid: string
+		creationTimestamp: string & time.Time
+		deletionTimestamp?: string & time.Time
+		finalizers: [...string]
+		resourceVersion: string
+		labels: {
+			[string]: string
+		}
+		updateTimestamp: string & time.Time
+		createdBy: string
+		updatedBy: string
+
+		// TODO: additional metadata fields?
+		// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
+
+		// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
+		extraFields: {...}
+	} & {
+		// All extensions to this metadata need to have string values (for APIServer encoding-to-annotations purposes)
+		// Can't use this as it's not yet enforced CUE:
+		//...string
+		// Have to do this gnarly regex instead
+		[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
+	}
+	spec: {...}
+	status: {
+		#OperatorState: {
+			// lastEvaluation is the ResourceVersion last evaluated
+			lastEvaluation: string
+			// state describes the state of the lastEvaluation.
+			// It is limited to three possible states for machine evaluation.
+			state: "success" | "in_progress" | "failed"
+			// descriptiveState is an optional more descriptive state field which has no requirements on format
+			descriptiveState?: string
+			// details contains any extra information that is operator-specific
+			details?: {...}
+		}
+		// operatorStates is a map of operator ID to operator state evaluations.
+		// Any operator which consumes this kind SHOULD add its state evaluation information to this field.
+		operatorStates?: {
+			[string]: #OperatorState
+		}
+		// additionalFields is reserved for future use
+		additionalFields: {...}
+		...
+	}
+}
+
 // Custom specifies the kind category for plugin-defined arbitrary types.
 // Custom kinds have the same purpose as Core kinds, differing only in
 // that they are defined by external plugins rather than in Grafana core. As such,
@@ -59,58 +113,7 @@ Custom: S={
 		//     "status": {...}
 		// }
 		if S.isCRD {
-			joinSchema: {
-				// metadata contains embedded CommonMetadata and can be extended with custom string fields
-				// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
-				// without extenal reference as using the CommonMetadata reference breaks thema codegen.
-				metadata: {
-					uid: string
-					creationTimestamp: string & time.Time
-					deletionTimestamp?: string & time.Time
-					finalizers: [...string]
-					resourceVersion: string
-					labels: {
-						[string]: string
-					}
-					updateTimestamp: string & time.Time
-					createdBy: string
-					updatedBy: string
-
-					// TODO: additional metadata fields?
-					// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
-
-					// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
-					extraFields: {...}
-				} & {
-					// All extensions to this metadata need to have string values (for APIServer encoding-to-annotations purposes)
-					// Can't use this as it's not yet enforced CUE:
-					//...string
-					// Have to do this gnarly regex instead
-					[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
-				}
-				spec: {...}
-				status: {
-					#OperatorState: {
-						// lastEvaluation is the ResourceVersion last evaluated
-						lastEvaluation: string
-						// state describes the state of the lastEvaluation.
-						// It is limited to three possible states for machine evaluation.
-						state: "success" | "in_progress" | "failed"
-						// descriptiveState is an optional more descriptive state field which has no requirements on format
-						descriptiveState?: string
-						// details contains any extra information that is operator-specific
-						details?: {...}
-					}
-					// operatorStates is a map of operator ID to operator state evaluations.
-					// Any operator which consumes this kind SHOULD add its state evaluation information to this field.
-					operatorStates?: {
-						[string]: #OperatorState
-					}
-					// additionalFields is reserved for future use
-					additionalFields: {...}
-					...
-				}
-			}
+			joinSchema: _crdSchema
 		}
 	}
 	lineageIsGroup: false
