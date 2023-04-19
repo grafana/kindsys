@@ -42,7 +42,7 @@ type CustomProperties struct {
 	CommonProperties
 	CurrentVersion thema.SyntacticVersion `json:"currentVersion"`
 	IsCRD          bool                   `json:"isCRD"`
-	PluginID       string                 `json:"pluginID"`
+	Group          string                 `json:"group"`
 	CRD            struct {
 		Group         string  `json:"group"`
 		Scope         string  `json:"scope"`

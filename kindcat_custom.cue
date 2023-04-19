@@ -2,6 +2,7 @@ package kindsys
 
 import (
 	"strings"
+	"struct"
 	"time"	
 )
 
@@ -31,7 +32,9 @@ CommonMetadata: {
 	// TODO: additional metadata fields?
 
 	// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
-	extraFields: {...}
+	extraFields: {
+		[string]: _
+	}
 }
 
 // _crdSchema is the schema format for a CRD.
@@ -50,7 +53,9 @@ _crdSchema: {
 		// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
 
 		// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
-		extraFields: {...}
+		extraFields: {
+			[string]: _
+		}
 	} & {
 		// All extensions to this metadata need to have string values (for APIServer encoding-to-annotations purposes)
 		// Can't use this as it's not yet enforced CUE:
@@ -58,7 +63,7 @@ _crdSchema: {
 		// Have to do this gnarly regex instead
 		[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
 	}
-	spec: {...}
+	spec: struct.MinFields(0)
 	status: {
 		#OperatorState: {
 			// lastEvaluation is the ResourceVersion last evaluated
@@ -69,7 +74,9 @@ _crdSchema: {
 			// descriptiveState is an optional more descriptive state field which has no requirements on format
 			descriptiveState?: string
 			// details contains any extra information that is operator-specific
-			details?: {...}
+			details?: {
+				[string]: _
+			}
 		}
 		// operatorStates is a map of operator ID to operator state evaluations.
 		// Any operator which consumes this kind SHOULD add its state evaluation information to this field.
@@ -77,8 +84,11 @@ _crdSchema: {
 			[string]: #OperatorState
 		}
 		// additionalFields is reserved for future use
-		additionalFields: {...}
-		...
+		additionalFields: {
+			[string]: _
+		}
+	} & {
+		[string]: _
 	}
 }
 
@@ -92,8 +102,8 @@ _crdSchema: {
 Custom: S={
 	_sharedKind
 
-	// pluginID is the unique identifier of the plugin which owns this Custom kind
-	pluginID: =~"^([a-z][a-z0-9-]*[a-z0-9])$"
+	// pluginID is the unique identifier of owner/grouping of this Custom kind
+	group: =~"^([a-z][a-z0-9-]*[a-z0-9])$"
 
 	// isCRD is true if the `crd` trait is present in the kind.
 	isCRD: S.crd != _|_
@@ -130,19 +140,19 @@ Custom: S={
 		// This field could be inlined into `group`, but is separate for clarity.
 		_computedGroups: [
 			if S.crd.groupOverride != _|_ {
-				strings.ToLower(S.crd.groupOverride) + ".apps.grafana.com",
+				strings.ToLower(S.crd.groupOverride) + ".ext.grafana.com",
 			}
-			strings.ToLower(strings.Replace(S.pluginID, "-","_",-1)) + ".apps.grafana.com"
+			strings.ToLower(strings.Replace(S.group, "_","-",-1)) + ".ext.grafana.com"
 		]
 
 		// group is used as the CRD group name in the GVK.
 		// It is computed from information in the plugin trait, using plugin.id unless groupName is specified.
 		// The length of the computed group + the length of the name (plus 1) cannot exceed 63 characters for a valid CRD.
 		// This length restriction is checked via _computedGroupKind
-		group: _computedGroups[0] & =~"^([a-z][a-z0-9_.]{0,61}[a-z0-9])$"
+		group: _computedGroups[0] & =~"^([a-z][a-z0-9-.]{0,61}[a-z0-9])$"
 
 		// _computedGroupKind checks the validity of the CRD kind + group
-		_computedGroupKind: S.machineName + "." + group & =~"^([a-z][a-z0-9_.]{0,63}[a-z0-9])$"
+		_computedGroupKind: S.machineName + "." + group & =~"^([a-z][a-z0-9-.]{0,63}[a-z0-9])$"
 
 		// scope determines whether resources of this kind exist globally ("Cluster") or
 		// within Kubernetes namespaces.
