@@ -102,7 +102,7 @@ _crdSchema: {
 Custom: S={
 	_sharedKind
 
-	// pluginID is the unique identifier of owner/grouping of this Custom kind
+	// group is the unique identifier of owner/grouping of this Custom kind
 	group: =~"^([a-z][a-z0-9-]*[a-z0-9])$"
 
 	// isCRD is true if the `crd` trait is present in the kind.
@@ -131,16 +131,18 @@ Custom: S={
 	// TODO: rather than `crd`, should this trait be something more generic, as it really indicates more if a resource should be available in a
 	// kubernetes-compatible APIServer, not specifically as CRD (though that _is_ an implementation)
 	crd?: {
-		// groupOverride is an override that is used in the crd trait if present.
-		// If left empty, plugin.id is used to generate the group name
-		groupOverride?: =~"^([a-z][a-z0-9-]{0,32}[a-z0-9])$"
+		// groupOverride is used to override the auto-generated group of "<group>.ext.grafana.com"
+		// if present, this value is used for the CRD group instead.
+		// groupOverride must have at least two parts (i.e. 'foo.bar'), but can be longer.
+		// The length of groupOverride + kind name cannot exceed 62 characters
+		groupOverride?: =~"^([a-z][a-z0-9-.]{0,48}[a-z0-9])\\.([a-z][a-z0-9-]{0,48}[a-z0-9])$"
 
 		// _computedGroups is a list of groups computed from information in the plugin trait.
 		// The first element is always the "most correct" one to use.
 		// This field could be inlined into `group`, but is separate for clarity.
 		_computedGroups: [
 			if S.crd.groupOverride != _|_ {
-				strings.ToLower(S.crd.groupOverride) + ".ext.grafana.com",
+				strings.ToLower(S.crd.groupOverride),
 			}
 			strings.ToLower(strings.Replace(S.group, "_","-",-1)) + ".ext.grafana.com"
 		]
