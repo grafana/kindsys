@@ -10,6 +10,8 @@ import (
 // It is not exhaustive and only includes fields which may be relevant to a kind's implementation,
 // As it is also intended to be generic enough to function with any API Server.
 _kubeObjectMetadata: {
+	@grafana(TSVeneer="type")
+
     uid: string
     creationTimestamp: string & time.Time
     deletionTimestamp?: string & time.Time
@@ -63,9 +65,15 @@ _crdSchema: {
 		// Have to do this gnarly regex instead
 		[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
 	}
-	spec: struct.MinFields(0)
+	spec: _
+
+	// cuetsy is not happy creating spec with this construct directly
+	_specIsNonEmpty: spec & struct.MinFields(0)
+
 	status: {
 		#OperatorState: {
+			@grafana(TSVeneer="type")
+
 			// lastEvaluation is the ResourceVersion last evaluated
 			lastEvaluation: string
 			// state describes the state of the lastEvaluation.
