@@ -41,7 +41,7 @@ CommonMetadata: {
 _crdSchema: {
 	// metadata contains embedded CommonMetadata and can be extended with custom string fields
 	// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
-	// without extenal reference as using the CommonMetadata reference breaks thema codegen.
+	// without external reference as using the CommonMetadata reference breaks thema codegen.
 	metadata: {
 		_kubeObjectMetadata
 		
