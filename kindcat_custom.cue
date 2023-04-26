@@ -52,19 +52,6 @@ _crdSchema: {
 		// TODO: additional metadata fields?
 		// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
 
-		// annotations: {
-		// 	// The originating system identifier
-		// 	origin?: string
-
-		// 	// Resource key within the originating system
-		// 	originKey?: string
-
-		// 	// Time the
-		// 	originTimestamp?: string & time.Time
-
-		// 	[string]: _
-		// }
-
 		// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
 		extraFields: {
 			[string]: _
