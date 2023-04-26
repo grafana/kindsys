@@ -10,8 +10,6 @@ import (
 // It is not exhaustive and only includes fields which may be relevant to a kind's implementation,
 // As it is also intended to be generic enough to function with any API Server.
 _kubeObjectMetadata: {
-	@grafana(TSVeneer="type")
-
     uid: string
     creationTimestamp: string & time.Time
     deletionTimestamp?: string & time.Time
@@ -54,6 +52,19 @@ _crdSchema: {
 		// TODO: additional metadata fields?
 		// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
 
+		// annotations: {
+		// 	// The originating system identifier
+		// 	origin?: string
+
+		// 	// Resource key within the originating system
+		// 	originKey?: string
+
+		// 	// Time the
+		// 	originTimestamp?: string & time.Time
+
+		// 	[string]: _
+		// }
+
 		// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
 		extraFields: {
 			[string]: _
@@ -72,8 +83,6 @@ _crdSchema: {
 
 	status: {
 		#OperatorState: {
-			@grafana(TSVeneer="type")
-
 			// lastEvaluation is the ResourceVersion last evaluated
 			lastEvaluation: string
 			// state describes the state of the lastEvaluation.
