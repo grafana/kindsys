@@ -6,9 +6,7 @@ import (
 	"strings"
 )
 
-// EnsureNoExportedKindName checks that Kind is prohibited as a name in the following cases:
-// #Kind: _
-// Kind: _ @cuetsy(*)
+// EnsureNoExportedKindName checks that Kind and #Kind is prohibited as a field name in schemas
 func EnsureNoExportedKindName(value cue.Value) error {
 	sch := schema(value)
 
