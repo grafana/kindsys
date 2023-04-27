@@ -40,8 +40,8 @@ CommonMetadata: {
 // _crdSchema is the schema format for a CRD.
 _crdSchema: {
 	// metadata contains embedded CommonMetadata and can be extended with custom string fields
-	// TODO: use CommonMetadata instead of redfining here; currently needs to be defined here 
-	// without extenal reference as using the CommonMetadata reference breaks thema codegen.
+	// TODO: use CommonMetadata instead of redefining here; currently needs to be defined here 
+	// without external reference as using the CommonMetadata reference breaks thema codegen.
 	metadata: {
 		_kubeObjectMetadata
 		
@@ -63,7 +63,11 @@ _crdSchema: {
 		// Have to do this gnarly regex instead
 		[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
 	}
-	spec: struct.MinFields(0)
+	spec: _
+
+	// cuetsy is not happy creating spec with the MinFields constraint directly
+	_specIsNonEmpty: spec & struct.MinFields(0)
+
 	status: {
 		#OperatorState: {
 			// lastEvaluation is the ResourceVersion last evaluated
