@@ -15,7 +15,8 @@ func EnsureNoExportedKindName(value cue.Value) error {
 	var pos []string
 	Walk(sch, func(v cue.Value) bool {
 		label, _ := v.Label()
-		if label == "#Kind" || label == "Kind" {
+		label = strings.ToLower(label)
+		if label == "#kind" || label == "kind" {
 			pos = append(pos, v.Pos().String())
 			return false
 		}
@@ -24,7 +25,7 @@ func EnsureNoExportedKindName(value cue.Value) error {
 	}, nil)
 
 	if len(pos) != 0 {
-		return fmt.Errorf("schema must not use `Kind` keyword present at %s", strings.Join(pos, "; "))
+		return fmt.Errorf("schema must not use `kind` keyword present at %s", strings.Join(pos, "; "))
 	}
 
 	return nil
