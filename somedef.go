@@ -25,7 +25,7 @@ type SomeDef struct {
 // [thema.BindType].
 func (def SomeDef) BindKindLineage(rt *thema.Runtime, opts ...thema.BindOption) (thema.Lineage, error) {
 	if rt == nil {
-		return &thema.UnaryLineage{}, fmt.Errorf("nil thema.Runtime")
+		return nil, fmt.Errorf("nil thema.Runtime")
 	}
 	return thema.BindLineage(def.V.LookupPath(cue.MakePath(cue.Str("lineage"))), rt, opts...)
 }
