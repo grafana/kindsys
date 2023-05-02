@@ -88,7 +88,7 @@ _crdSchema: {
 			[string]: #OperatorState
 		}
 		// additionalFields is reserved for future use
-		additionalFields: {
+		additionalFields?: {
 			[string]: _
 		}
 	} & {
