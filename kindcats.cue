@@ -69,7 +69,7 @@ _sharedKind: {
 
 	// currentVersion is computed to be the syntactic version number of the latest
 	// schema in lineage.
-	currentVersion: thema.#SyntacticVersion & (thema.#LatestVersion & {lin: lineage}).out
+	currentVersion: lineage.#LatestVersion
 
 	maturity: Maturity
 
@@ -98,7 +98,7 @@ Core: S=close({
 	_sharedKind
 	_rootKind
 
-	lineage: { name: S.machineName }
+	lineage: { name: S.machineName, joinSchema: _crdSchema }
 	lineageIsGroup: false
 
 	// crd contains properties specific to converting this kind to a Kubernetes CRD.
