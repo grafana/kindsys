@@ -69,7 +69,7 @@ _sharedKind: {
 
 	// currentVersion is computed to be the syntactic version number of the latest
 	// schema in lineage.
-	currentVersion: lineage.#LatestVersion
+	currentVersion: thema.#SyntacticVersion & (thema.#LatestVersion & {lin: lineage}).out
 
 	maturity: Maturity
 

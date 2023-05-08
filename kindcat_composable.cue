@@ -25,6 +25,7 @@ Composable: S={
 	// The name of the lineage is constrained to the name of the schema interface being implemented.
 // FIXME cuetsy currently gets confused by all the unifications - maybe openapi too. Do something like the following after thema separates joinSchema/constraint expression
 //	lineage: { joinSchema: schif.interface }
+//	lineage: { joinSchema: (schif.interface | *{}) }
 
 	lineageIsGroup: schif.group
 }
