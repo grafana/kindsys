@@ -5,10 +5,12 @@ package kindsys
 // provider.
 Provider: {
   // The unique name of the provider.
+  // TODO: What should the constraints be?
   name: =~"^([a-z][a-z0-9-]+?)$"
 
   // The version of the provider. Must be formatted according to semantic versioning
   // rules (<major>.<minor>.<patch>), e.g. 1.0.0.
+  // TODO: What should the constraints be?
   version: =~"^([0-9]\\.[0-9]\\.[0-9])$"
 
   // Core kinds provided by the provider.
