@@ -1,14 +1,5 @@
 package provider
 
-// import (
-// 	"github.com/grafana/kindsys"
-// )
-
-// kindsys.Provider
-
-name:    "grafana-timeseries-panel"
-version: "1.0.0"
-
 composableKinds: PanelCfg: {
 	name:     "TimeseriesPanelCfg"
 	maturity: "experimental"
