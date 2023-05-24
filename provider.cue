@@ -1,7 +1,7 @@
 package kindsys
 
 // Provider is a structure that allows packaging core, composable and
-// custom kinds together with some metadata that uniqely identifies the
+// custom kinds together with some metadata that uniquely identifies the
 // provider.
 Provider: {
   // The unique name of the provider.
