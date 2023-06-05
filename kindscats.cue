@@ -89,3 +89,5 @@ _rootKind: {
 // Maturity indicates the how far a given kind definition is in its initial
 // journey. Mature kinds still evolve, but with guarantees about compatibility.
 Maturity: "merged" | "experimental" | "stable" | "mature"
+
+nonEmptyString: string & strings.MinRunes(1)

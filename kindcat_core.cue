@@ -36,5 +36,3 @@ Core: S=close({
 		//   deepCopy: *"generic" | "passthrough"
 	}
 })
-
-nonEmptyString: string & strings.MinRunes(1)
