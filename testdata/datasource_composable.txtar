@@ -1,0 +1,13 @@
+-- composable.cue --
+package composable
+
+description: "Valid dataquery composable schema"
+schemaInterface: "DataSourceCfg"
+name: "DataSourceCfg"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        text: string
+    }
+}]
