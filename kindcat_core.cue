@@ -1,7 +1,7 @@
 package kindsys
 
 // Core specifies the kind category for core-defined arbitrary types.
-// Familiar types and functional resources in Grafana, such as dashboards and
+// Familiar types and functional resources in Grafana, such as dashboards
 // and datasources, are represented as core kinds.
 Core: S=close({
 	_sharedKind
