@@ -10,6 +10,6 @@ lineage: schemas: [{
     }
 }]
 
--- error.out --
+-- error --
 description: cannot convert non-concrete value strings.MinRunes(1):
     /github.com/grafana/kindsys/kindscats.cue:86:2

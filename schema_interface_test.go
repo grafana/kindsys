@@ -49,22 +49,21 @@ func TestValidSchemas(t *testing.T) {
 			require.NoError(t, err)
 
 			data := getData(t, b)
-			v := ctx.CompileBytes(data.CUE)
+			v := ctx.CompileBytes(data.cue)
 			require.NoError(t, v.Validate())
 
-			_, err = getKind(ctx, v)
-			if err != nil {
+			if err = verify(ctx, v); err != nil {
 				fixErr := strings.Trim(err.Error(), "\n")
-				assert.Equal(t, fixErr, data.Error)
+				assert.Equal(t, fixErr, data.error)
 			}
 		})
 	}
 }
 
-func getKind(ctx *cue.Context, v cue.Value) (kindsys.Kind, error) {
+func verify(ctx *cue.Context, v cue.Value) error {
 	instance := v.BuildInstance()
 	if instance == nil {
-		return nil, errors.New("cannot build instance")
+		return errors.New("cannot build instance")
 	}
 
 	pkg := instance.Files[0].PackageName()
@@ -72,33 +71,36 @@ func getKind(ctx *cue.Context, v cue.Value) (kindsys.Kind, error) {
 	case "core":
 		def, err := kindsys.ToDef[kindsys.CoreProperties](v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		return kindsys.BindCore(thema.NewRuntime(ctx), def)
+		_, err = kindsys.BindCore(thema.NewRuntime(ctx), def)
+		return err
 	case "custom":
 		def, err := kindsys.ToDef[kindsys.CustomProperties](v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		return kindsys.BindCustom(thema.NewRuntime(ctx), def)
+		_, err = kindsys.BindCustom(thema.NewRuntime(ctx), def)
+		return err
 	case "composable":
 		def, err := kindsys.ToDef[kindsys.ComposableProperties](v)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		return kindsys.BindComposable(thema.NewRuntime(ctx), def)
+		_, err = kindsys.BindComposable(thema.NewRuntime(ctx), def)
+		return err
 	}
 
-	return nil, errors.New(fmt.Sprintf("unknown package: %s", pkg))
+	return errors.New(fmt.Sprintf("unknown package: %s", pkg))
 }
 
 type testData struct {
-	Name  string
-	CUE   []byte
-	Error string
+	name  string
+	cue   []byte
+	error string
 }
 
 func getData(t *testing.T, b []byte) testData {
@@ -113,16 +115,15 @@ func getData(t *testing.T, b []byte) testData {
 	}
 
 	var err string
-	if len(archive.Files) > 1 {
-		if archive.Files[1].Name != "error.out" {
-			t.Fatal("Second argument should be error.out file")
+	for _, f := range archive.Files {
+		if f.Name == "error" {
+			err = strings.TrimSuffix(string(f.Data), "\n")
 		}
-		err = strings.TrimSuffix(string(archive.Files[1].Data), "\n")
 	}
 
 	return testData{
-		Name:  name,
-		CUE:   archive.Files[0].Data,
-		Error: err,
+		name:  name,
+		cue:   archive.Files[0].Data,
+		error: err,
 	}
 }

@@ -10,7 +10,7 @@ lineage: schemas: [{
     }
 }]
 
--- error.out --
+-- error --
 machineName: invalid interpolation: error in call to strings.Replace: non-concrete value string:
     /github.com/grafana/kindsys/kindcat_core.cue:20:10
     /github.com/grafana/kindsys/kindscats.cue:37:8

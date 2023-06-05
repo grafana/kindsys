@@ -11,5 +11,5 @@ lineage: schemas: [{
     }
 }]
 
--- error.out --
+-- error --
 not a kind: name: invalid value "core" (out of bound =~"^([A-Z][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$")
