@@ -94,7 +94,7 @@ func verify(ctx *cue.Context, v cue.Value) error {
 		return err
 	}
 
-	return errors.New(fmt.Sprintf("unknown package: %s", pkg))
+	return errors.New(fmt.Sprintf("unknown package: %s. Only core, custom and composable package names are allowed", pkg))
 }
 
 type testData struct {
