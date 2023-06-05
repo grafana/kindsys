@@ -1,0 +1,12 @@
+-- core.cue --
+package core
+
+name: "Core"
+description: "Valid core schema"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        spec: name: string
+    }
+}]

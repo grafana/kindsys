@@ -1,0 +1,15 @@
+-- core.cue --
+package core
+
+name: "core"
+description: "Valid core schema"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        spec: name: string
+    }
+}]
+
+-- error.out --
+not a kind: name: invalid value "core" (out of bound =~"^([A-Z][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$")

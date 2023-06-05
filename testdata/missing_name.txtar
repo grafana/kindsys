@@ -1,0 +1,27 @@
+-- core.cue --
+package core
+
+description: "Valid core schema"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        spec: name: string
+    }
+}]
+
+-- error.out --
+machineName: invalid interpolation: error in call to strings.Replace: non-concrete value string:
+    /github.com/grafana/kindsys/kindcat_core.cue:20:10
+    /github.com/grafana/kindsys/kindscats.cue:37:8
+    /github.com/grafana/kindsys/kindscats.cue:45:31
+name: cannot convert non-concrete value =~"^([A-Z][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$":
+    /github.com/grafana/kindsys/kindscats.cue:37:2
+machineName: error in call to strings.Replace: non-concrete value string:
+    /github.com/grafana/kindsys/kindscats.cue:45:31
+    /github.com/grafana/kindsys/kindscats.cue:37:8
+pluralName: cannot convert non-concrete value =~"^([A-Z][a-zA-Z0-9-]{0,61}[a-zA-Z])$":
+    /github.com/grafana/kindsys/kindscats.cue:48:2
+pluralMachineName: error in call to strings.Replace: non-concrete value string:
+    /github.com/grafana/kindsys/kindscats.cue:53:37
+    /github.com/grafana/kindsys/kindscats.cue:48:14

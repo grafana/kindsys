@@ -1,0 +1,13 @@
+-- custom.cue --
+package custom
+
+name: "Custom"
+description: "Valid custom schema"
+group: "custom"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        spec: name: string
+    }
+}]

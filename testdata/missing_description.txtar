@@ -1,0 +1,15 @@
+-- core.cue --
+package core
+
+name: "Core"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        spec: name: string
+    }
+}]
+
+-- error.out --
+description: cannot convert non-concrete value strings.MinRunes(1):
+    /github.com/grafana/kindsys/kindscats.cue:86:2

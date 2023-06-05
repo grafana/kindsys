@@ -1,0 +1,13 @@
+-- composable.cue --
+package composable
+
+description: "Valid panel composable schema"
+schemaInterface: "PanelCfg"
+name: "Panel"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        text: string
+    }
+}]
