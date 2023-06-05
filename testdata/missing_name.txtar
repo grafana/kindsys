@@ -12,7 +12,7 @@ lineage: schemas: [{
 
 -- error --
 machineName: invalid interpolation: error in call to strings.Replace: non-concrete value string:
-    /github.com/grafana/kindsys/kindcat_core.cue:20:10
+    /github.com/grafana/kindsys/kindcat_core.cue:16:10
     /github.com/grafana/kindsys/kindscats.cue:37:8
     /github.com/grafana/kindsys/kindscats.cue:45:31
 name: cannot convert non-concrete value =~"^([A-Z][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$":

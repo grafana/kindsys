@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cuelang.org/go v0.5.0
-	github.com/grafana/thema v0.0.0-20230524160113-4e9d6e28a640
+	github.com/grafana/thema v0.0.0-20230601172625-e3eaca4d36bd
 	github.com/rogpeppe/go-internal v1.9.0
 	github.com/stretchr/testify v1.8.1
 	github.com/yalue/merged_fs v1.2.2
@@ -47,7 +47,3 @@ require (
 	sigs.k8s.io/json v0.0.0-20220713155537-f223a00ba0e2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
-
-replace github.com/grafana/thema => ../thema
-
-replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb

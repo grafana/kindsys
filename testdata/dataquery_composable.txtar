@@ -11,3 +11,19 @@ lineage: schemas: [{
         text: string
     }
 }]
+
+-- output --
+{
+    "name": "DataQuery",
+    "pluralName": "DataQuerys",
+    "machineName": "dataquery",
+    "pluralMachineName": "dataquerys",
+    "lineageIsGroup": false,
+    "maturity": "merged",
+    "description": "Valid dataquery composable schema",
+    "currentVersion": [
+        0,
+        0
+    ],
+    "schemaInterface": "DataQuery"
+}

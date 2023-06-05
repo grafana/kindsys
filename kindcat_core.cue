@@ -1,9 +1,5 @@
 package kindsys
 
-import (
-	"strings"
-)
-
 // Core specifies the kind category for core-defined arbitrary types.
 // Familiar types and functional resources in Grafana, such as dashboards and
 // and datasources, are represented as core kinds.

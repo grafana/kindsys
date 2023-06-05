@@ -1,9 +1,9 @@
 -- composable.cue --
 package composable
 
-description: "Valid dataquery composable schema"
+description: "Valid datasourcecfg composable schema"
 schemaInterface: "DataSourceCfg"
-name: "DataSourceCfg"
+name: "DataSource"
 
 lineage: schemas: [{
     version: [0, 0]
@@ -11,3 +11,19 @@ lineage: schemas: [{
         text: string
     }
 }]
+
+-- output --
+{
+    "name": "DataSource",
+    "pluralName": "DataSources",
+    "machineName": "datasource",
+    "pluralMachineName": "datasources",
+    "lineageIsGroup": true,
+    "maturity": "merged",
+    "description": "Valid datasourcecfg composable schema",
+    "currentVersion": [
+        0,
+        0
+    ],
+    "schemaInterface": "DataSourceCfg"
+}

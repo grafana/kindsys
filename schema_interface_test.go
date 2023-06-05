@@ -1,6 +1,7 @@
 package kindsys_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,10 +10,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/grafana/thema"
+
 	"cuelang.org/go/cue"
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/kindsys"
-	"github.com/grafana/thema"
 	"github.com/rogpeppe/go-internal/txtar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -52,18 +54,24 @@ func TestValidSchemas(t *testing.T) {
 			v := ctx.CompileBytes(data.cue)
 			require.NoError(t, v.Validate())
 
-			if err = verify(ctx, v); err != nil {
+			k, err := verify(ctx, v)
+			if err != nil {
 				fixErr := strings.Trim(err.Error(), "\n")
 				assert.Equal(t, fixErr, data.error)
+			} else if data.output != "" {
+				json, err := json.MarshalIndent(k.Props(), "", "    ")
+				require.NoError(t, err)
+				assert.Equal(t, data.output, string(json))
 			}
 		})
 	}
 }
 
-func verify(ctx *cue.Context, v cue.Value) error {
+func verify(ctx *cue.Context, v cue.Value) (kindsys.Kind, error) {
+	rt := thema.NewRuntime(ctx)
 	instance := v.BuildInstance()
 	if instance == nil {
-		return errors.New("cannot build instance")
+		return nil, errors.New("cannot build instance")
 	}
 
 	pkg := instance.Files[0].PackageName()
@@ -71,36 +79,34 @@ func verify(ctx *cue.Context, v cue.Value) error {
 	case "core":
 		def, err := kindsys.ToDef[kindsys.CoreProperties](v)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		_, err = kindsys.BindCore(thema.NewRuntime(ctx), def)
-		return err
+		return kindsys.BindCore(rt, def)
 	case "custom":
 		def, err := kindsys.ToDef[kindsys.CustomProperties](v)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		_, err = kindsys.BindCustom(thema.NewRuntime(ctx), def)
-		return err
+		return kindsys.BindCustom(rt, def)
 	case "composable":
 		def, err := kindsys.ToDef[kindsys.ComposableProperties](v)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		_, err = kindsys.BindComposable(thema.NewRuntime(ctx), def)
-		return err
+		return kindsys.BindComposable(rt, def)
 	}
 
-	return errors.New(fmt.Sprintf("unknown package: %s. Only core, custom and composable package names are allowed", pkg))
+	return nil, errors.New(fmt.Sprintf("unknown package: %s. Only core, custom and composable package names are allowed", pkg))
 }
 
 type testData struct {
-	name  string
-	cue   []byte
-	error string
+	name   string
+	cue    []byte
+	output string
+	error  string
 }
 
 func getData(t *testing.T, b []byte) testData {
@@ -115,15 +121,21 @@ func getData(t *testing.T, b []byte) testData {
 	}
 
 	var err string
+	var output string
 	for _, f := range archive.Files {
 		if f.Name == "error" {
 			err = strings.TrimSuffix(string(f.Data), "\n")
 		}
+
+		if f.Name == "output" {
+			output = strings.TrimSuffix(string(f.Data), "\n")
+		}
 	}
 
 	return testData{
-		name:  name,
-		cue:   archive.Files[0].Data,
-		error: err,
+		name:   name,
+		cue:    archive.Files[0].Data,
+		output: output,
+		error:  err,
 	}
 }

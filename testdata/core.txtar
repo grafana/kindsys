@@ -10,3 +10,23 @@ lineage: schemas: [{
         spec: name: string
     }
 }]
+
+-- output --
+{
+    "name": "Core",
+    "pluralName": "Cores",
+    "machineName": "core",
+    "pluralMachineName": "cores",
+    "lineageIsGroup": false,
+    "maturity": "merged",
+    "description": "Valid core schema",
+    "currentVersion": [
+        0,
+        0
+    ],
+    "crd": {
+        "group": "core.core.grafana.com",
+        "scope": "Namespaced",
+        "dummySchema": false
+    }
+}

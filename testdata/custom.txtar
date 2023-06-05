@@ -11,3 +11,29 @@ lineage: schemas: [{
         spec: name: string
     }
 }]
+
+-- output --
+{
+    "name": "Custom",
+    "pluralName": "Customs",
+    "machineName": "custom",
+    "pluralMachineName": "customs",
+    "lineageIsGroup": false,
+    "maturity": "merged",
+    "description": "Valid custom schema",
+    "currentVersion": [
+        0,
+        0
+    ],
+    "isCRD": false,
+    "group": "custom",
+    "crd": {
+        "group": "",
+        "scope": "",
+        "groupOverride": null
+    },
+    "codegen": {
+        "frontend": true,
+        "backend": true
+    }
+}
