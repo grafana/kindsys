@@ -4,7 +4,7 @@ ci_image = 'grafana/grafana-plugin-ci:1.6.1-alpine'
 
 def lint():
     return {
-        'name': 'go build',
+        'name': 'go lint',
         'image': ci_image,
         'commands': [
             'make lint',
