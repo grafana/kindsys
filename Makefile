@@ -1,4 +1,4 @@
-.PHONY: lint, test, drone
+.PHONY: lint test drone
 
 lint:
 	test -z $$(gofmt -s -l .)
