@@ -17,12 +17,17 @@ Composable: S={
 	// Grafana and tooling with any additional schema interfaces that may be added.
 	schemaInterface: string
 	// TODO is it worth doing something like below, given that we have to keep this set open for forward compatibility?
-//	schemaInterface: or([ for k, _ in schemaInterfaces {k}, string])
+	//	schemaInterface: or([ for k, _ in schemaInterfaces {k}, string])
 
 	let schif = schemaInterfaces[S.schemaInterface]
 
 	// lineage is the Thema lineage containing all the schemas that have existed for this kind.
 	// The name of the lineage is constrained to the name of the schema interface being implemented.
+
+	if S.name != _|_ {
+		lineage: { name: S.name }
+	}
+
 // FIXME cuetsy currently gets confused by all the unifications - maybe openapi too. Do something like the following after thema separates joinSchema/constraint expression
 //	lineage: { joinSchema: schif.interface }
 

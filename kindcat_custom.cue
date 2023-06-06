@@ -147,7 +147,7 @@ Custom: S={
 		_computedGroups: [
 			if S.crd.groupOverride != _|_ {
 				strings.ToLower(S.crd.groupOverride),
-			}
+			},
 			strings.ToLower(strings.Replace(S.group, "_","-",-1)) + ".ext.grafana.com"
 		]
 

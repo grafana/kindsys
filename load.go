@@ -222,7 +222,7 @@ func ToDef[T KindProperties](v cue.Value) (Def[T], error) {
 
 	if err := def.V.Decode(props); err != nil {
 		// Should only be reachable if CUE and Go framework types have diverged
-		panic(errors.Details(err, nil))
+		return def, errors.New(errors.Details(err, nil))
 	}
 	def.Properties = *props
 	return def, nil

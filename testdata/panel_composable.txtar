@@ -1,0 +1,29 @@
+-- composable.cue --
+package composable
+
+description: "Valid panel composable schema"
+schemaInterface: "PanelCfg"
+name: "Panel"
+
+lineage: schemas: [{
+    version: [0, 0]
+    schema: {
+        text: string
+    }
+}]
+
+-- output --
+{
+    "name": "Panel",
+    "pluralName": "Panels",
+    "machineName": "panel",
+    "pluralMachineName": "panels",
+    "lineageIsGroup": true,
+    "maturity": "merged",
+    "description": "Valid panel composable schema",
+    "currentVersion": [
+        0,
+        0
+    ],
+    "schemaInterface": "PanelCfg"
+}
