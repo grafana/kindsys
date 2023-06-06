@@ -8,7 +8,7 @@ platform:
   arch: amd64
 
 steps:
-- name: go build
+- name: go lint
   image: grafana/grafana-plugin-ci:1.6.1-alpine
   commands:
   - make lint
@@ -40,7 +40,7 @@ platform:
   arch: amd64
 
 steps:
-- name: go build
+- name: go lint
   image: grafana/grafana-plugin-ci:1.6.1-alpine
   commands:
   - make lint
@@ -71,5 +71,9 @@ name: dockerconfigjson
 get:
   path: secret/data/common/gcr
   name: .dockerconfigjson
+
+---
+kind: signature
+hmac: 596f2393954df1c3da0b4f68b0dabf9611c8dcc3f11b9eda30ecdd25a9295e3b
 
 ...
