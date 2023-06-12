@@ -9,8 +9,6 @@ import (
 	"github.com/grafana/thema"
 )
 
-const providerPackageName = "provider"
-
 // Provider is a structure that can hold a set of core, composable and
 // custom kinds together with provider metadata.
 type Provider struct {
@@ -55,7 +53,7 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 		rt = thema.NewRuntime(ctx)
 	}
 
-	bi, err := LoadInstance("", providerPackageName, fsys)
+	bi, err := LoadInstance("", "", fsys)
 	if err != nil || bi.Err != nil {
 		if err == nil {
 			err = bi.Err
