@@ -102,6 +102,8 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORR
 github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grafana/thema v0.0.0-20230601172625-e3eaca4d36bd h1:gK5LMNi8AUp8xcrOSNfbvE5g3dT46Qgy+/pCon1Z9jc=
 github.com/grafana/thema v0.0.0-20230601172625-e3eaca4d36bd/go.mod h1:KWAKeFXxQYiJ/kBVbijBLRVq9atxkfkeeFIvmj4clEA=
+github.com/grafana/thema v0.0.0-20230615161902-b6e21996aef8 h1:ESVwKjvGWVucGY65rJq0Hny3a6p8UYqEbClqXhP2qJk=
+github.com/grafana/thema v0.0.0-20230615161902-b6e21996aef8/go.mod h1:KWAKeFXxQYiJ/kBVbijBLRVq9atxkfkeeFIvmj4clEA=
 github.com/hashicorp/go-version v1.2.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
