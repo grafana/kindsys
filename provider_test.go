@@ -91,6 +91,24 @@ func TestLoadProvider(t *testing.T) {
 		require.Equal(t, "TimeseriesPanelCfg", pcKind.Name())
 		require.Equal(t, "PanelCfg", pcKind.Def().Properties.SchemaInterface)
 	})
+
+	t.Run("load grafanaplugin provider", func(t *testing.T) {
+		p, err := loadProviderTestCase(t, "grafanaplugin")
+		require.NoError(t, err)
+		require.NotNil(t, p)
+		require.NotNil(t, p.V)
+
+		require.Equal(t, "timeseries", p.Name)
+		require.Equal(t, "2.0.0", p.Version)
+		require.Len(t, p.CoreKinds, 0)
+		require.Len(t, p.ComposableKinds, 1)
+		require.Len(t, p.CustomKinds, 0)
+
+		pcKind := p.ComposableKinds["PanelCfg"]
+		require.NotNil(t, pcKind)
+		require.Equal(t, "TimeseriesPanelCfg", pcKind.Name())
+		require.Equal(t, "PanelCfg", pcKind.Def().Properties.SchemaInterface)
+	})
 }
 
 func loadProviderTestCase(t *testing.T, testcase string) (*Provider, error) {
