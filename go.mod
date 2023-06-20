@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	cuelang.org/go v0.5.0
-	github.com/grafana/thema v0.0.0-20230601172625-e3eaca4d36bd
+	github.com/grafana/thema v0.0.0-20230615161902-b6e21996aef8
 	github.com/stretchr/testify v1.8.1
 	github.com/yalue/merged_fs v1.2.2
 	k8s.io/apiextensions-apiserver v0.26.2
