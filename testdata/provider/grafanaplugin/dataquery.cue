@@ -14,14 +14,15 @@
 
 package provider
 
-import (
-	common "github.com/grafana/grafana/packages/grafana-schema/src/common"
-)
+// import (
+// 	common "github.com/grafana/grafana/packages/grafana-schema/src/common"
+// )
 
 id: "prometheus"
 version: "1.0.0"
-pascalName: "prometheus"
+pascalName: "Prometheus"
 
+GrafanaPlugin
 
 composableKinds: DataQuery: {
 	maturity: "experimental"
@@ -30,7 +31,7 @@ composableKinds: DataQuery: {
 		schemas: [{
 			version: [0, 0]
 			schema: {
-				common.DataQuery
+				// common.DataQuery
 
 				// The actual expression/query that will be evaluated by Prometheus
 				expr: string

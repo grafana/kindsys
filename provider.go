@@ -71,7 +71,7 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 
 	val := ctx.BuildInstance(bi)
 	if val.Err() != nil {
-		return nil, fmt.Errorf("failed to create a cue.Value from build.Instance: %w", err)
+		return nil, fmt.Errorf("failed to create a cue.Value from build.Instance: %w", val.Err())
 	}
 
 	if !val.Exists() {

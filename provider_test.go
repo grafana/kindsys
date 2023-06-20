@@ -98,16 +98,16 @@ func TestLoadProvider(t *testing.T) {
 		require.NotNil(t, p)
 		require.NotNil(t, p.V)
 
-		require.Equal(t, "timeseries", p.Name)
-		require.Equal(t, "2.0.0", p.Version)
+		require.Equal(t, "prometheus", p.Name)
+		require.Equal(t, "1.0.0", p.Version)
 		require.Len(t, p.CoreKinds, 0)
 		require.Len(t, p.ComposableKinds, 1)
 		require.Len(t, p.CustomKinds, 0)
 
-		pcKind := p.ComposableKinds["PanelCfg"]
+		pcKind := p.ComposableKinds["DataQuery"]
 		require.NotNil(t, pcKind)
-		require.Equal(t, "TimeseriesPanelCfg", pcKind.Name())
-		require.Equal(t, "PanelCfg", pcKind.Def().Properties.SchemaInterface)
+		require.Equal(t, "PrometheusDataQuery", pcKind.Name())
+		require.Equal(t, "DataQuery", pcKind.Def().Properties.SchemaInterface)
 	})
 }
 
