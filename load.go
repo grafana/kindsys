@@ -15,6 +15,18 @@ import (
 	"github.com/yalue/merged_fs"
 )
 
+// PermittedCUEImports is the list of allowed import paths that may be imported
+// in Grafana kind definitions.
+//
+// Behavior of kindsys is undefined if the contents of this slice are modified
+// at runtime. Treat it like a const.
+var PermittedCUEImports = []string{
+	"github.com/grafana/thema",
+	"github.com/grafana/kindsys",
+	"github.com/grafana/grafana/pkg/plugins/pfs",
+	"github.com/grafana/grafana/packages/grafana-schema/src/common",
+}
+
 var defaultFramework cue.Value
 var fwOnce sync.Once
 var ctx = cuecontext.New()
