@@ -68,8 +68,8 @@ func (m Maturity) String() string {
 //
 // Conceptually, kinds are similar to class definitions in object-oriented
 // programming. They define a particular type of object, and how instances of
-// that object should be created. An object defined in a [Core] or [Custom] kind
-// is called a [Resource]. TODO name for the object with composable kinds
+// that object should be created. The object defined in a [Core] or [Custom] kind
+// is called a [Resource]. TODO name for the associated object for composable kinds
 //
 // [Core], [Custom] and [Composable] all provide methods for unmarshaling []byte
 // into an unstructured Go type, [UnstructuredResource], similar to how
@@ -94,10 +94,21 @@ func (m Maturity) String() string {
 //
 // [the kindsys repository]: https://github.com/grafana/kindsys
 type Kind interface {
+	// Name returns the kind's name, as defined in the name field of the kind definition.
+	//
+	// Note that this is the capitalized name of the kind. For other names and
+	// common kind properties, see [Props.CommonProperties].
+	Name() string
+
 	// Props returns a [kindsys.SomeKindProps], representing the properties
 	// of the kind as declared in the .cue source. The underlying type is
 	// determined by the category of kind.
 	Props() SomeKindProperties
+
+	// CurrentVersion returns the version number of the schema that is considered
+	// the 'current' version, usually the latest version. When initializing object
+	// instances of this Kind, the current version is used by default.
+	CurrentVersion() thema.SyntacticVersion
 
 	// Lineage returns the kind's [thema.Lineage]. The lineage contains the full
 	// history of object schemas associated with the kind.
@@ -114,17 +125,18 @@ type Kind interface {
 type Core interface {
 	Kind
 
-	// TODO hide this away completely
-	Def() Def[CoreProperties]
-}
+	// Group returns the kind's group, as defined in the group field of the kind definition.
+	//
+	// This is equivalent to the group of a Kubernetes CRD.
+	Group() string
 
-// TypedCore is the typed runtime representation of a Grafana core kind definition.
-// It is one in a family of interfaces, see [Kind] for context.
-//
-// A TypedCore provides typed interactions with the [Resource] type given as its
-// generic type parameter. As it embeds [Core], untyped interaction is also available.
-type TypedCore[R Resource] interface {
-	Core
+	// Def returns a wrapper around the underlying CUE value that represents the
+	// loaded and validated kind definition.
+	Def() Def[CoreProperties]
+
+	// New initializes an object of this kind, represented as an
+	// UnstructuredResource and populated with schema-specified defaults.
+	New() UnstructuredResource
 }
 
 // Custom is the untyped runtime representation of a Grafana core kind definition.
@@ -133,14 +145,52 @@ type TypedCore[R Resource] interface {
 // A Custom kind provides untyped interactions with its corresponding [Resource]
 // using [UnstructuredResource].
 //
-// Custom kinds are declared in Grafana extensions, rather than Grafana core. It
+// Custom kinds are declared in Grafana extensions, rather than in Grafana core. It
 // is likely that this distinction will go away in the future, leaving only
 // Custom kinds.
 type Custom interface {
 	Kind
 
-	// TODO hide this away completely
+	// Group returns the kind's group, as defined in the group field of the kind definition.
+	//
+	// This is equivalent to the group field in a Kubernetes CRD.
+	Group() string
+
+	// Def returns a wrapper around the underlying CUE value that represents the
+	// loaded and validated kind definition.
 	Def() Def[CustomProperties]
+
+	// New initializes an object of this kind, represented as an
+	// UnstructuredResource and populated with schema-specified defaults.
+	New() UnstructuredResource
+}
+
+// Composable is the untyped runtime representation of a Grafana core kind definition.
+// It is one in a family of interfaces, see [Kind] for context.
+//
+// TODO sort out the type used for generic associated...objects? do we even need one?
+type Composable interface {
+	Kind
+
+	// Def returns a wrapper around the underlying CUE value that represents the
+	// loaded and validated kind definition.
+	Def() Def[ComposableProperties]
+}
+
+// TypedCore is the typed runtime representation of a Grafana core kind definition.
+// It is one in a family of interfaces, see [Kind] for context.
+//
+// A TypedCore provides typed interactions with the [Resource] type given as its
+// generic type parameter. As it embeds [Core], untyped interaction is also available.
+//
+// A TypedCore is created by calling [BindCoreResource] on a [Core] with a
+// Go type to which it is assignable (see [thema.BindType]).
+type TypedCore[R Resource] interface {
+	Core
+
+	// NewTyped creates a new object of this kind, represented as the generic type R
+	// and populated with schema-specified defaults.
+	NewTyped() R
 }
 
 // TypedCustom is the typed runtime representation of a Grafana core kind definition.
@@ -148,18 +198,13 @@ type Custom interface {
 //
 // A TypedCustom provides typed interactions with the [Resource] type given as its
 // generic type parameter. As it embeds [Custom], untyped interaction is also available.
+//
+// A TypedCustom is created by calling [BindCustomResource] on a [Custom] with a
+// Go type to which it is assignable (see [thema.BindType]).
 type TypedCustom[R Resource] interface {
 	Custom
-}
 
-// Composable is the untyped runtime representation of a Grafana core kind definition.
-// It is one in a family of interfaces, see [Kind] for context.
-//
-// A Composable kind provides untyped interactions with its corresponding [Resource]
-// using [UnstructuredResource].
-type Composable interface {
-	Kind
-
-	// TODO hide this away completely
-	Def() Def[ComposableProperties]
+	// NewTyped creates a new object of this kind, represented as the generic type R
+	// and populated with schema-specified defaults.
+	NewTyped() R
 }

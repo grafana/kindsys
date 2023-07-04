@@ -54,38 +54,32 @@ type ResourceBytes struct {
 //
 // Resource is an interface, rather than a concrete struct, for two reasons:
 //
-// - Some use cases need to operate over resources of any kind.
+// - Some use cases need to operate generically over resources of any kind.
 // - Go generics do not allow the ergonomic expression of certain needed constraints.
 //
-// For cases needing to operate generically, [UnstructuredResource] is
-// available. But most Go code works directly with a known, finite set of
-// kinds. In these cases, prefer using generated implementations of [Resource] that
-// are specific to each kind. (TODO link to some docs)
+// The [Core] and [Custom] interfaces are intended for the generic operation
+// use case, fulfilling [Resource] using [UnstructuredResource].
 //
-// FIXME finish this doc before merging PR
-// Each implementation of Resource also bridges the gap between the byte
-// representation of objects, and the native Go representation.
-//
-// The byte representation is the standard Kubernetes object format. It's
-// commonly seen committed to git repositories in YAML. the strongly typed
-// representation of the object in Go. The wire format is a JSON representation
-// of the object
-//
-// Resource represents the shared parts of Grafana resources, common regardless
-// of the underlying kind. It is generic over its Spec and Status fields. It is
-// expected that the generic parameters for Resource are structs, generated from
-// a CUE kind definition.
+// For known, specific kinds, it is usually possible to rely on code generation
+// to produce a struct that implements [Resource] for each kind. Such a struct
+// can be used as the generic type parameter to create a [TypedCore] or [TypedCustom]
 type Resource interface {
 	// CommonMetadata returns the portion of this Resource's metadata that is common to all kinds.
 	CommonMetadata() CommonMetadata
 
-	// CustomMetadata returns metadata unique to the Kind of this Resource. A
-	// resource may have no kind-specific CustomMetadata.
-	//
-	// CustomMetadata is read-only through this generic interface. Use cases needing
-	// to modify custom metadata must know and convert to the underlying type.
-	// FIXME finish
-	// CustomMetadata() map[string]any
+	// SetCommonMetadata overwrites the CommonMetadata of the object.
+	// Implementations should always overwrite, rather than attempt merges of the metadata.
+	// Callers wishing to merge should get current metadata with CommonMetadata() and set specific values.
+	SetCommonMetadata(metadata CommonMetadata)
+
+	// StaticMetadata returns the Object's StaticMetadata
+	StaticMetadata() StaticMetadata
+
+	// SetStaticMetadata overwrites the Object's StaticMetadata with the provided StaticMetadata.
+	// Implementations should always overwrite, rather than attempt merges of the metadata.
+	// Callers wishing to merge should get current metadata with StaticMetadata() and set specific values.
+	// Note that StaticMetadata is only mutable in an object create context.
+	SetStaticMetadata(metadata StaticMetadata)
 
 	ToBytes(metadataEncoder func(commonMeta *CommonMetadata, customMeta any, format WireFormat) []byte, format WireFormat) (*ResourceBytes, error)
 
@@ -93,20 +87,69 @@ type Resource interface {
 	// WireFormat, the spec object and all provided subresources according to the
 	// provided WireFormat. It returns an error if any part of the provided bytes
 	// cannot be unmarshaled.
-	FromBytes(bytes []byte, config UnmarshalConfig) error
+	FromBytes(byt ResourceBytes, config UnmarshalConfig) error
 
 	// Copy returns a full copy of the Resource with all its data.
 	Copy() Resource
+
+	// BELOW HERE ARE METHODS WE LIKELY WANT BUT WILL IMPLEMENT AS NEEDED
+
+	// CustomMetadata returns metadata unique to the Kind of this Resource. A
+	// resource may have no kind-specific CustomMetadata.
+	//
+	// CustomMetadata is read-only through this generic interface. Use cases needing
+	// to modify custom metadata must know and convert to the underlying type.
+	// FIXME finish
+	// CustomMetadata() CustomMetadata
+
+	// SpecObject returns the actual "schema" object, which holds the main body of data
+	// SpecObject() any
+
+	// Subresources returns a map of subresource name(s) to the object value for that subresource.
+	// Spec is not considered a subresource, and should only be returned by SpecObject
+	// Subresources() map[string]any
 }
 
-// KindInfo consists of all non-mutable metadata for an object.
+// CustomMetadata is an interface describing a resource.Object's kind-specific metadata
+// type CustomMetadata interface {
+// 	// MapFields converts the custom metadata's fields into a map of field key to value.
+// 	// This is used so Clients don't need to engage in reflection for marshaling metadata,
+// 	// as various implementations may not store kind-specific metadata the same way.
+// 	MapFields() map[string]any
+// }
+
+// StaticMetadata consists of all immutable metadata for a Resource.
 // It is set in the initial Create call for an Object, then will always remain the same.
-type KindInfo struct {
+type StaticMetadata struct {
 	Group     string `json:"group"`
 	Version   string `json:"version"`
 	Kind      string `json:"kind"`
 	Namespace string `json:"namespace"`
 	Name      string `json:"name"`
+}
+
+// ListObject represents a List of Object-implementing objects with list metadata.
+// The simplest way to use it is to use the implementation returned by a Client's List call.
+type ListObject interface {
+	ListMetadata() ListMetadata
+	SetListMetadata(ListMetadata)
+	ListItems() []Resource
+	SetItems([]Resource)
+}
+
+// ListMetadata is metadata for a list of objects. This is typically only used in responses from the storage layer.
+type ListMetadata struct {
+	ResourceVersion string `json:"resourceVersion"`
+
+	Continue string `json:"continue"`
+
+	RemainingItemCount *int64 `json:"remainingItemCount"`
+
+	// ExtraFields stores implementation-specific metadata.
+	// Not all Client implementations are required to honor all ExtraFields keys.
+	// Generally, this field should be shied away from unless you know the specific
+	// Client implementation you're working with and wish to track or mutate extra information.
+	ExtraFields map[string]any `json:"extraFields"`
 }
 
 // CommonMetadata is the system-defined common metadata associated with a [Resource].
@@ -168,3 +211,11 @@ type UnstructuredResource struct {
 }
 
 var _ Resource = UnstructuredResource{}
+
+// SimpleCustomMetadata is an implementation of CustomMetadata
+type SimpleCustomMetadata map[string]any
+
+// MapFields returns a map of string->value for all CustomMetadata fields
+func (s SimpleCustomMetadata) MapFields() map[string]any {
+	return s
+}
