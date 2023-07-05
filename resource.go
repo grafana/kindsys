@@ -1,6 +1,8 @@
 package kindsys
 
-import "time"
+import (
+	"time"
+)
 
 // WireFormat enumerates values for possible message wire formats.
 // Constants with these values are in this package with a `WireFormat` prefix.
@@ -22,25 +24,6 @@ type UnmarshalConfig struct {
 	WireFormat WireFormat
 	// VersionHint is what the client thinks the version is (if non-empty)
 	VersionHint string
-}
-
-// ResourceBytes is the collection of different Kubernetes-shape (see
-// [K8sToGrafana]) Resource components as raw bytes.
-//
-// It is used for unmarshaling a Resource, and can be used for marshaling as well.
-// Client implementations are required to process their own storage representation into
-// a uniform representation in ResourceBytes.
-type ResourceBytes struct {
-	// Spec contains the marshaled SpecObject. It should be unmarshalable directly into the Object-implementation's
-	// Spec object using an unmarshaler of the appropriate WireFormat type
-	Spec []byte
-	// Metadata includes object-specific metadata, and may include CommonMetadata depending on implementation.
-	// Clients must call SetCommonMetadata on the object after an Unmarshal if CommonMetadata is not provided in the bytes.
-	Metadata []byte
-	// Subresources contains a map of all subresources that are both part of the underlying Object implementation,
-	// AND are supported by the Client implementation. Each entry should be unmarshalable directly into the
-	// Object-implementation's relevant subresource using an unmarshaler of the appropriate WireFormat type
-	Subresources map[string][]byte
 }
 
 // A Resource is a single instance of a Grafana [Kind], either [Core] or [Custom].
@@ -80,14 +63,6 @@ type Resource interface {
 	// Callers wishing to merge should get current metadata with StaticMetadata() and set specific values.
 	// Note that StaticMetadata is only mutable in an object create context.
 	SetStaticMetadata(metadata StaticMetadata)
-
-	ToBytes(metadataEncoder func(commonMeta *CommonMetadata, customMeta any, format WireFormat) []byte, format WireFormat) (*ResourceBytes, error)
-
-	// FromBytes unmarshals raw bytes from a Kubernetes-form object in the provided
-	// WireFormat, the spec object and all provided subresources according to the
-	// provided WireFormat. It returns an error if any part of the provided bytes
-	// cannot be unmarshaled.
-	FromBytes(byt ResourceBytes, config UnmarshalConfig) error
 
 	// Copy returns a full copy of the Resource with all its data.
 	Copy() Resource
@@ -204,18 +179,10 @@ type CommonMetadata struct {
 // strongly typed, and lacks any user-defined methods that may exist on a
 // kind-specific struct that implements [Resource].
 type UnstructuredResource struct {
-	CommonMeta CommonMetadata `json:"metadata"`
-	KindMeta   map[string]any `json:"customMetadata"`
-	Spec       map[string]any `json:"spec,omitempty"`
-	Status     map[string]any `json:"status,omitempty"`
+	Metadata       CommonMetadata `json:"metadata"`
+	CommonMetadata map[string]any `json:"customMetadata"`
+	Spec           map[string]any `json:"spec,omitempty"`
+	Status         map[string]any `json:"status,omitempty"`
 }
 
 var _ Resource = UnstructuredResource{}
-
-// SimpleCustomMetadata is an implementation of CustomMetadata
-type SimpleCustomMetadata map[string]any
-
-// MapFields returns a map of string->value for all CustomMetadata fields
-func (s SimpleCustomMetadata) MapFields() map[string]any {
-	return s
-}

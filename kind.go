@@ -3,6 +3,7 @@ package kindsys
 import (
 	"fmt"
 
+	"github.com/grafana/kindsys/encoding"
 	"github.com/grafana/thema"
 )
 
@@ -137,6 +138,44 @@ type Core interface {
 	// New initializes an object of this kind, represented as an
 	// UnstructuredResource and populated with schema-specified defaults.
 	New() UnstructuredResource
+
+	// FromBytes takes a []byte and a decoder, validates it against schema, and
+	// if validation is successful, unmarshals it into an UnstructuredResource.
+	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
+
+	// ToBytes takes a []byte and a decoder, validates it against schema, and
+	// if validation is successful, unmarshals it into an UnstructuredResource.
+	ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
+}
+
+// WHAT DO CODECS NEED
+//
+// Given that our only wire target is []byte
+//
+// Decoders
+//
+// - WireFormat - json, yaml, proto, whatever
+// - K8s form or Grafana form input
+//
+// Encoders
+//
+// - Version - what version of the target are
+
+type Decoder interface {
+	// This is moving into a general, partially-decoded form of the Grafana shape
+	Decode(b []byte) (encoding.GrafanaShapeBytes, error)
+}
+
+// We'll only PROVIDE a decoder that expects k8s-shaped bytes, because we only want there
+// to be a k8s-shaped bytes form
+func NewJSONDecoder() Decoder {
+	return jsonDecoder{}
+}
+
+type jsonDecoder struct{}
+
+type Encoder interface {
+	Encode(bytes encoding.GrafanaShapeBytes) ([]byte, error)
 }
 
 // Custom is the untyped runtime representation of a Grafana core kind definition.
