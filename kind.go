@@ -137,6 +137,15 @@ type Core interface {
 	// New initializes an object of this kind, represented as an
 	// UnstructuredResource and populated with schema-specified defaults.
 	New() UnstructuredResource
+
+	// Compose takes a set of Composable kinds that fulfill a particular
+	// SchemaInterface and constructs a new Core with the provided composable kinds
+	// injected into the composition slot specified in the receiving Core kind's
+	// definition.
+	//
+	// The returned Core's Validate and Translate methods will trigger these
+	// methods for all the composed kinds.
+	Compose(slot string, schif SchemaInterface, kinds ...Composable) (Core, error)
 }
 
 // Custom is the untyped runtime representation of a Grafana core kind definition.
@@ -163,6 +172,15 @@ type Custom interface {
 	// New initializes an object of this kind, represented as an
 	// UnstructuredResource and populated with schema-specified defaults.
 	New() UnstructuredResource
+
+	// Compose takes a set of Composable kinds that fulfill a particular
+	// SchemaInterface and constructs a new Custom with the provided composable kinds
+	// injected into the composition slot specified in the receiving Custom kind's
+	// definition.
+	//
+	// The returned Custom's Validate and Translate methods will trigger these
+	// methods for all the composed kinds.
+	Compose(slot string, schif SchemaInterface, kinds ...Composable) (Custom, error)
 }
 
 // Composable is the untyped runtime representation of a Grafana core kind definition.
