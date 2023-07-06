@@ -5,6 +5,7 @@ go 1.19
 require (
 	cuelang.org/go v0.5.0
 	github.com/grafana/thema v0.0.0-20230615161902-b6e21996aef8
+	github.com/stretchr/testify v1.8.1
 	github.com/yalue/merged_fs v1.2.2
 	k8s.io/apiextensions-apiserver v0.26.2
 	k8s.io/apimachinery v0.26.2
@@ -15,6 +16,7 @@ require (
 	github.com/cockroachdb/errors v1.9.1 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20211118104740-dabe8e521a4f // indirect
 	github.com/cockroachdb/redact v1.1.3 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/proto v1.10.0 // indirect
 	github.com/getsentry/sentry-go v0.12.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
@@ -30,6 +32,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mpvl/unique v0.0.0-20150818121801-cbe035fff7de // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20220428173112-74888fd59c2b // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	golang.org/x/net v0.7.0 // indirect

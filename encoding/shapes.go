@@ -15,8 +15,16 @@ type KubernetesShapeBytes struct {
 	Subresources map[string][]byte
 }
 
-// TODO
+// GrafanaShapeBytes is a collection of bytes encoded in some wire format which can be unmarshaled into
+// each component of a kindsys.Resource. Also included are metadata about the kind and resource,
+// which can be used to identify what kind and resource to use for unmarshaling.
 type GrafanaShapeBytes struct {
+	// Kind is the name of the kind for which these bytes were extracted from or could be composed into
+	Kind string
+	// Group is the group to which the kind belongs. Together with Kind this becomes a globally-unique identifier for the kind
+	Group string
+	// Version is the particular version of the kind these bytes are for.
+	Version string
 	// TODO
 	Spec []byte
 	// TODO
