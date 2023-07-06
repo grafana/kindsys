@@ -10,6 +10,29 @@ type genericCore struct {
 	lin thema.Lineage
 }
 
+func (k genericCore) CurrentVersion() thema.SyntacticVersion {
+	return k.def.Properties.CurrentVersion
+}
+
+func (k genericCore) Group() string {
+	return k.def.Properties.CRD.Group
+}
+
+func (k genericCore) New() UnstructuredResource {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (k genericCore) FromBytes(b []byte, codec Decoder) (UnstructuredResource, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (k genericCore) ToBytes(UnstructuredResource, codec Encoder) ([]byte, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
 var _ Core = genericCore{}
 
 func (k genericCore) Props() SomeKindProperties {

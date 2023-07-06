@@ -9,6 +9,10 @@ type genericComposable struct {
 	lin thema.Lineage
 }
 
+func (k genericComposable) CurrentVersion() thema.SyntacticVersion {
+	return k.def.Properties.CurrentVersion
+}
+
 var _ Composable = genericComposable{}
 
 func (k genericComposable) Props() SomeKindProperties {
@@ -21,10 +25,6 @@ func (k genericComposable) Name() string {
 
 func (k genericComposable) MachineName() string {
 	return k.def.Properties.MachineName
-}
-
-func (k genericComposable) Maturity() Maturity {
-	return k.def.Properties.Maturity
 }
 
 func (k genericComposable) Def() Def[ComposableProperties] {

@@ -10,6 +10,19 @@ type genericCustom struct {
 	lin thema.Lineage
 }
 
+func (k genericCustom) CurrentVersion() thema.SyntacticVersion {
+	return k.def.Properties.CurrentVersion
+}
+
+func (k genericCustom) Group() string {
+	return k.def.Properties.CRD.Group
+}
+
+func (k genericCustom) New() UnstructuredResource {
+	// TODO implement me
+	panic("implement me")
+}
+
 var _ Custom = genericCustom{}
 
 // Props returns the generic SomeKindProperties
