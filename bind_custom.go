@@ -10,6 +10,11 @@ type genericCustom struct {
 	lin thema.Lineage
 }
 
+func (k genericCustom) Validate(b []byte, codec Decoder) error {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (k genericCustom) CurrentVersion() thema.SyntacticVersion {
 	return k.def.Properties.CurrentVersion
 }

@@ -93,13 +93,20 @@ func (m Maturity) String() string {
 // provided on Typed* variants that do the same as their untyped counterparts,
 // but using the type given in the generic type parameter.
 //
+// Directly implementing this interface is discouraged. Strongly prefer instead to
+// rely on [BindCore], [BindCustom], or [BindComposable].
+//
 // [the kindsys repository]: https://github.com/grafana/kindsys
 type Kind interface {
-	// Name returns the kind's name, as defined in the name field of the kind definition.
+	// Name returns the kind's name, as specified in the name field of the kind definition.
 	//
 	// Note that this is the capitalized name of the kind. For other names and
 	// common kind properties, see [Props.CommonProperties].
 	Name() string
+
+	// MachineName returns the kind's machine name, as specified in the machineName
+	// field of the kind definition.
+	MachineName() string
 
 	// Props returns a [kindsys.SomeKindProps], representing the properties
 	// of the kind as declared in the .cue source. The underlying type is
@@ -110,6 +117,17 @@ type Kind interface {
 	// the 'current' version, usually the latest version. When initializing object
 	// instances of this Kind, the current version is used by default.
 	CurrentVersion() thema.SyntacticVersion
+
+	// Validate takes a []byte representing an object instance of this kind and
+	// checks that it is a valid instance of at least one schema defined in the
+	// kind.
+	//
+	// A decoder must be provided that knows how to decode the []byte into an
+	// intermediate form. At minimum, the right decoder must be chosen for the
+	// format - for example, JSON vs YAML. For resource kinds, a decoder must
+	// also know how to transform the input from a Kubernetes resource object
+	// shape to Grafana's object shape. See [github.com/grafana/kindsys/encoding].
+	Validate(b []byte, codec Decoder) error
 
 	// Lineage returns the kind's [thema.Lineage]. The lineage contains the full
 	// history of object schemas associated with the kind.
@@ -146,36 +164,6 @@ type Core interface {
 	// ToBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
 	ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
-}
-
-// WHAT DO CODECS NEED
-//
-// Given that our only wire target is []byte
-//
-// Decoders
-//
-// - WireFormat - json, yaml, proto, whatever
-// - K8s form or Grafana form input
-//
-// Encoders
-//
-// - Version - what version of the target are
-
-type Decoder interface {
-	// This is moving into a general, partially-decoded form of the Grafana shape
-	Decode(b []byte) (encoding.GrafanaShapeBytes, error)
-}
-
-// We'll only PROVIDE a decoder that expects k8s-shaped bytes, because we only want there
-// to be a k8s-shaped bytes form
-func NewJSONDecoder() Decoder {
-	return jsonDecoder{}
-}
-
-type jsonDecoder struct{}
-
-type Encoder interface {
-	Encode(bytes encoding.GrafanaShapeBytes) ([]byte, error)
 }
 
 // Custom is the untyped runtime representation of a Grafana core kind definition.
@@ -246,4 +234,13 @@ type TypedCustom[R Resource] interface {
 	// NewTyped creates a new object of this kind, represented as the generic type R
 	// and populated with schema-specified defaults.
 	NewTyped() R
+}
+
+type Decoder interface {
+	// This is moving into a general, partially-decoded form of the Grafana shape
+	Decode(b []byte) (encoding.GrafanaShapeBytes, error)
+}
+
+type Encoder interface {
+	Encode(bytes encoding.GrafanaShapeBytes) ([]byte, error)
 }

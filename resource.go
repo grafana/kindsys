@@ -173,16 +173,5 @@ type CommonMetadata struct {
 	ExtraFields map[string]any `json:"extraFields"`
 }
 
-// UnstructuredResource is an untyped representation of [Resource]. In the same
-// way that map[string]any can represent any JSON []byte, UnstructuredResource
-// can represent a [Resource] for any [Core] or [Custom] kind. But it is not
-// strongly typed, and lacks any user-defined methods that may exist on a
-// kind-specific struct that implements [Resource].
-type UnstructuredResource struct {
-	Metadata       CommonMetadata `json:"metadata"`
-	CommonMetadata map[string]any `json:"customMetadata"`
-	Spec           map[string]any `json:"spec,omitempty"`
-	Status         map[string]any `json:"status,omitempty"`
-}
-
-var _ Resource = UnstructuredResource{}
+// TODO guard against skew, use indirection through an internal package
+// var _ CommonMetadata = encoding.CommonMetadata{}
