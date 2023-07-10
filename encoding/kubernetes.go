@@ -22,7 +22,7 @@ type commonMetadata struct {
 	ResourceVersion string `json:"resourceVersion"`
 	// Labels are string key/value pairs attached to the object. They can be used for filtering,
 	// or as additional metadata.
-	Labels map[string]string `json:"labels"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// CreationTimestamp indicates when the resource has been created.
 	CreationTimestamp time.Time `json:"creationTimestamp"`
 	// DeletionTimestamp indicates that the resource is pending deletion as of the provided time if non-nil.
@@ -33,7 +33,7 @@ type commonMetadata struct {
 	// Once a resource with finalizers has been deleted, the object should remain in the store,
 	// DeletionTimestamp is set to the time of the "delete," and the resource will continue to exist
 	// until the finalizers list is cleared.
-	Finalizers []string `json:"finalizers"`
+	Finalizers []string `json:"finalizers,omitempty"`
 	// UpdateTimestamp is the timestamp of the last update to the resource.
 	UpdateTimestamp time.Time `json:"updateTimestamp"`
 	// CreatedBy is a string which indicates the user or process which created the resource.
@@ -206,35 +206,23 @@ func (k *KubernetesJSONDecoder) Decode(bytes []byte) (GrafanaShapeBytes, error) 
 		}
 	}
 
-	// Break up the metadata into common and custom, then re-encode both
-	cmd := commonMetadata{
-		UID:               string(kubeMeta.UID),
-		ResourceVersion:   kubeMeta.ResourceVersion,
-		Labels:            kubeMeta.Labels,
-		CreationTimestamp: kubeMeta.CreationTimestamp.Time.UTC(),
-		Finalizers:        kubeMeta.Finalizers,
-		ExtraFields: map[string]any{
-			"generation":  kubeMeta.Generation,
-			"annotations": kubeMeta.Annotations,
-		},
+	meta := make(map[string]any)
+	meta["uid"] = string(kubeMeta.UID)
+	meta["resourceVersion"] = kubeMeta.ResourceVersion
+	meta["creationTimestamp"] = kubeMeta.CreationTimestamp.Time.UTC()
+	if len(kubeMeta.Labels) != 0 {
+		meta["labels"] = kubeMeta.Labels
 	}
-	if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
-		cmd.ExtraFields["ownerReferences"] = kubeMeta.OwnerReferences
+	if kubeMeta.Finalizers != nil {
+		meta["finalizers"] = kubeMeta.Finalizers
 	}
-	if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
-		cmd.ExtraFields["managedFields"] = kubeMeta.ManagedFields
-	}
-	// deletionTimestamp can be nil, but is of a kubernetes time type, so we have to cast if non-nil
-	if kubeMeta.DeletionTimestamp != nil {
-		cmd.DeletionTimestamp = &kubeMeta.DeletionTimestamp.Time
-	}
-	// Other common metadata keys are in annotations
-	cmd.CreatedBy = kubeMeta.Annotations[annotationPrefix+"createdBy"]
-	cmd.UpdatedBy = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
-	cmd.UpdateTimestamp, _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
+	meta["createdBy"] = kubeMeta.Annotations[annotationPrefix+"createdBy"]
+	meta["updatedBy"] = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
+	meta["updateTimestamp"], _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
 
-	// For all other annotation keys which begin with annotationPrefix (grafana.com/), strip the prefix and put them in custom metadata
-	customMeta := make(map[string]any)
+	// Break up the metadata into common and custom, then re-encode both
+	// For all annotation keys which begin with annotationPrefix (grafana.com/), strip the prefix and put them directly in meta
+	// TODO smashing together upstream k8s metadata, kindsys metadata, and per-kind custom metadata in one struct is awkward. Consider formal separation
 	for key, val := range kubeMeta.Annotations {
 		if len(key) <= len(annotationPrefix) || key[:len(annotationPrefix)] != annotationPrefix {
 			// Keep going if the key doesn't start with annotationPrefix
@@ -245,12 +233,53 @@ func (k *KubernetesJSONDecoder) Decode(bytes []byte) (GrafanaShapeBytes, error) 
 			// We've already handled this one
 			continue
 		}
-		customMeta[key] = val
+		meta[key] = val
 	}
-	res.Metadata, err = json.Marshal(cmd)
-	if err != nil {
-		return res, err
+
+	extras := make(map[string]any)
+	extras["generation"] = kubeMeta.Generation
+	extras["annotations"] = kubeMeta.Annotations
+	extras["ownerReferences"] = kubeMeta.OwnerReferences
+
+	if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
+		extras["ownerReferences"] = kubeMeta.OwnerReferences
 	}
-	res.CustomMetadata, err = json.Marshal(customMeta)
+	if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
+		extras["managedFields"] = kubeMeta.ManagedFields
+	}
+	if kubeMeta.DeletionTimestamp != nil {
+		meta["deletionTimestamp"] = &kubeMeta.DeletionTimestamp.Time
+	}
+	meta["extraFields"] = extras
+
+	// kept in the hopeful case that we switch to separated metadata
+	// cmd := commonMetadata{
+	// 	UID:               string(kubeMeta.UID),
+	// 	ResourceVersion:   kubeMeta.ResourceVersion,
+	// 	Labels:            kubeMeta.Labels,
+	// 	CreationTimestamp: kubeMeta.CreationTimestamp.Time.UTC(),
+	// 	Finalizers:        kubeMeta.Finalizers,
+	// 	ExtraFields: map[string]any{
+	// 		"generation":  kubeMeta.Generation,
+	// 		"annotations": kubeMeta.Annotations,
+	// 	},
+	// }
+	// if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
+	// 	cmd.ExtraFields["ownerReferences"] = kubeMeta.OwnerReferences
+	// }
+	// if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
+	// 	cmd.ExtraFields["managedFields"] = kubeMeta.ManagedFields
+	// }
+	// // deletionTimestamp can be nil, but is of a kubernetes time type, so we have to cast if non-nil
+	// if kubeMeta.DeletionTimestamp != nil {
+	// 	cmd.DeletionTimestamp = &kubeMeta.DeletionTimestamp.Time
+	// }
+	// // Other common metadata keys are in annotations
+	// cmd.CreatedBy = kubeMeta.Annotations[annotationPrefix+"createdBy"]
+	// cmd.UpdatedBy = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
+	// cmd.UpdateTimestamp, _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
+	// res.CustomMetadata, err = json.Marshal(meta)
+
+	res.Metadata, err = json.Marshal(meta)
 	return res, err
 }
