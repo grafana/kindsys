@@ -133,5 +133,17 @@ func BindProvider(rt *thema.Runtime, val cue.Value) (*Provider, error) {
 		}
 	}
 
+	metadataVal := val.LookupPath(cue.MakePath(cue.Str("metadata")))
+	if metadataVal.Exists() {
+		if metadataVal.Err() != nil {
+			return nil, fmt.Errorf("failed to retrieve metadata: %w", metadataVal.Err())
+		}
+
+		err := metadataVal.Decode(&p.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode metadata: %w", err)
+		}
+	}
+
 	return &p, nil
 }
