@@ -28,5 +28,7 @@ Provider: {
     name: Name
   }
 
+  metadata?: {...}
+
   ...
 }

@@ -29,6 +29,9 @@ type Provider struct {
 	// CustomKinds list of custom kinds that this provider provides.
 	CustomKinds map[string]Custom
 
+	// Metadata contains any other information about the provider.
+	Metadata interface{}
+
 	// V is the cue.Value containing the entire provider definition.
 	V cue.Value
 }
@@ -71,7 +74,7 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 
 	val := ctx.BuildInstance(bi)
 	if val.Err() != nil {
-		return nil, fmt.Errorf("failed to create a cue.Value from build.Instance: %w", err)
+		return nil, fmt.Errorf("failed to create a cue.Value from build.Instance: %w", val.Err())
 	}
 
 	if !val.Exists() {
@@ -114,12 +117,11 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 
 	coreKindsVal := val.LookupPath(cue.MakePath(cue.Str("coreKinds")))
 	if coreKindsVal.Exists() {
-		s, err := coreKindsVal.Struct()
+		it, err := coreKindsVal.Fields()
 		if err != nil {
 			return nil, fmt.Errorf("coreKinds is not a struct: %w", err)
 		}
 
-		it := s.Fields()
 		for it.Next() {
 			props, err := ToKindProps[CoreProperties](it.Value())
 			if err != nil {
@@ -140,12 +142,11 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 
 	composableKindsVal := val.LookupPath(cue.MakePath(cue.Str("composableKinds")))
 	if composableKindsVal.Exists() {
-		s, err := composableKindsVal.Struct()
+		it, err := composableKindsVal.Fields()
 		if err != nil {
 			return nil, fmt.Errorf("composableKinds is not a struct: %w", err)
 		}
 
-		it := s.Fields()
 		for it.Next() {
 			props, err := ToKindProps[ComposableProperties](it.Value())
 			if err != nil {
@@ -166,12 +167,11 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 
 	customKindsVal := val.LookupPath(cue.MakePath(cue.Str("customKinds")))
 	if customKindsVal.Exists() {
-		s, err := customKindsVal.Struct()
+		it, err := customKindsVal.Fields()
 		if err != nil {
 			return nil, fmt.Errorf("customKinds is not a struct: %w", err)
 		}
 
-		it := s.Fields()
 		for it.Next() {
 			props, err := ToKindProps[CustomProperties](it.Value())
 			if err != nil {
@@ -187,6 +187,18 @@ func LoadProvider(fsys fs.FS, rt *thema.Runtime) (*Provider, error) {
 			}
 
 			p.CustomKinds[it.Label()] = customKind
+		}
+	}
+
+	metadataVal := val.LookupPath(cue.MakePath(cue.Str("metadata")))
+	if metadataVal.Exists() {
+		if metadataVal.Err() != nil {
+			return nil, fmt.Errorf("failed to retrieve metadata: %w", metadataVal.Err())
+		}
+
+		err := metadataVal.Decode(&p.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode metadata: %w", err)
 		}
 	}
 
