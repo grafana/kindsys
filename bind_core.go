@@ -2,7 +2,6 @@ package kindsys
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/grafana/kindsys/encoding"
 	"github.com/grafana/thema"
@@ -11,11 +10,11 @@ import (
 
 type gis struct {
 	// TODO
-	Spec json.RawMessage
+	Spec json.RawMessage `json:"spec"`
 	// TODO
-	Metadata json.RawMessage
+	Metadata json.RawMessage `json:"metadata"`
 	// TODO
-	CustomMetadata json.RawMessage
+	// CustomMetadata json.RawMessage `json:"customMetadata"`
 	// TODO
 	// Subresources map[string]json.RawMessage
 }
@@ -27,8 +26,8 @@ type genericCore struct {
 }
 
 func (k genericCore) Validate(b []byte, codec Decoder) error {
-	// TODO implement me
-	panic("implement me")
+	_, err := k.bytesToAnyInstance(b, codec)
+	return err
 }
 
 func (k genericCore) bytesToAnyInstance(b []byte, codec Decoder) (*thema.Instance, error) {
@@ -38,14 +37,14 @@ func (k genericCore) bytesToAnyInstance(b []byte, codec Decoder) (*thema.Instanc
 	if err != nil {
 		return nil, err
 	}
-	if gb.Group != k.Group() || gb.Kind != k.Name() {
-		return nil, fmt.Errorf("resource is %s.%s, not of kind %s.%s", gb.Group, gb.Kind, k.Group(), k.Name())
-	}
+	// if gb.Group != k.Group() || gb.Kind != k.Name() {
+	// 	return nil, fmt.Errorf("resource is %s.%s, not of kind %s.%s", gb.Group, gb.Kind, k.Group(), k.Name())
+	// }
 	// TODO make the intermediate type already look like this so we don't have to re-encode/decode
 	gj := gis{
-		Spec:           gb.Spec,
-		Metadata:       gb.Metadata,
-		CustomMetadata: gb.CustomMetadata,
+		Spec:     gb.Spec,
+		Metadata: gb.Metadata,
+		// CustomMetadata: gb.CustomMetadata,
 		// Subresources: make(map[string]json.RawMessage),
 	}
 	// for k, v := range gb.Subresources {
