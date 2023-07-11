@@ -33,6 +33,24 @@ type Provider struct {
 	V cue.Value
 }
 
+func (p *Provider) AllKinds() []Kind {
+	all := []Kind{}
+
+	for _, ck := range p.CoreKinds {
+		all = append(all, ck)
+	}
+
+	for _, ck := range p.CustomKinds {
+		all = append(all, ck)
+	}
+
+	for _, ck := range p.ComposableKinds {
+		all = append(all, ck)
+	}
+
+	return all
+}
+
 // LoadProvider takes a virtual filesystem and checks that it contains a valid
 // set of files that statically define a Provider.
 //
