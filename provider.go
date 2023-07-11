@@ -29,6 +29,9 @@ type Provider struct {
 	// CustomKinds list of custom kinds that this provider provides.
 	CustomKinds map[string]Custom
 
+	// Metadata contains any other information about the provider.
+	Metadata interface{}
+
 	// V is the cue.Value containing the entire provider definition.
 	V cue.Value
 }
