@@ -109,7 +109,11 @@ type Kind interface {
 	// field of the kind definition.
 	MachineName() string
 
-	// Props returns a [kindsys.SomeKindProps], representing the properties
+	// Maturity indicates the maturity of this kind, one of the enum of values we
+	// accept in the maturity field of the kind definition.
+	Maturity() Maturity
+
+	// Props returns a [SomeKindProps], representing the properties
 	// of the kind as declared in the .cue source. The underlying type is
 	// determined by the category of kind.
 	Props() SomeKindProperties
@@ -133,15 +137,15 @@ type Kind interface {
 	// Lineage returns the kind's [thema.Lineage]. The lineage contains the full
 	// history of object schemas associated with the kind.
 	//
-	// TODO hide thema away down on the Def
+	// TODO separate this onto an optional, additional interface
 	Lineage() thema.Lineage
 }
 
-// Core is the untyped, dynamic runtime representation of a Grafana core kind
+// Core is the dynamically typed runtime representation of a Grafana core kind
 // definition. It is one in a family of interfaces, see [Kind] for context.
 //
-// A Core kind provides untyped interactions with its corresponding [Resource]
-// using [UnstructuredResource].
+// A Core kind provides interactions with its corresponding [Resource] using
+// [UnstructuredResource].
 type Core interface {
 	Kind
 
@@ -163,11 +167,11 @@ type Core interface {
 	// ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
 }
 
-// Custom is the untyped, dynamic runtime representation of a Grafana core kind
+// Custom is the dynamically typed runtime representation of a Grafana custom kind
 // definition. It is one in a family of interfaces, see [Kind] for context.
 //
-// A Custom kind provides untyped interactions with its corresponding [Resource]
-// using [UnstructuredResource].
+// A Custom kind provides interactions with its corresponding [Resource] using
+// [UnstructuredResource].
 //
 // Custom kinds are declared in Grafana extensions, rather than in Grafana core. It
 // is likely that this distinction will go away in the future, leaving only
@@ -192,7 +196,7 @@ type Custom interface {
 // Composable is the untyped runtime representation of a Grafana core kind definition.
 // It is one in a family of interfaces, see [Kind] for context.
 //
-// TODO sort out the type used for generic associated...objects? do we even need one?
+// TODO sort out the Go type used for generic associated...objects? do we even need one?
 type Composable interface {
 	Kind
 
@@ -234,7 +238,6 @@ type TypedCustom[R Resource] interface {
 }
 
 type Decoder interface {
-	// This is moving into a general, partially-decoded form of the Grafana shape
 	Decode(b []byte) (encoding.GrafanaShapeBytes, error)
 }
 

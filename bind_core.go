@@ -4,7 +4,8 @@ import (
 	"github.com/grafana/thema"
 )
 
-// genericCore is a general representation of a parsed and validated Core kind.
+// genericCore is a dynamically typed representation of a parsed and
+// validated [Core] kind, implemented with thema.
 type genericCore struct {
 	def Def[CoreProperties]
 	lin thema.Lineage
@@ -23,11 +24,6 @@ func (k genericCore) Group() string {
 	return k.def.Properties.CRD.Group
 }
 
-func (k genericCore) New() UnstructuredResource {
-	// TODO implement me
-	panic("implement me")
-}
-
 func (k genericCore) FromBytes(b []byte, codec Decoder) (UnstructuredResource, error) {
 	inst, err := bytesToAnyInstance(k, b, codec)
 	if err != nil {
@@ -36,11 +32,6 @@ func (k genericCore) FromBytes(b []byte, codec Decoder) (UnstructuredResource, e
 	// we have a valid instance! decode into unstructured
 	// TODO implement me
 	_ = inst
-	panic("implement me")
-}
-
-func (k genericCore) ToBytes(UnstructuredResource, codec Encoder) ([]byte, error) {
-	// TODO implement me
 	panic("implement me")
 }
 
@@ -70,7 +61,7 @@ func (k genericCore) Lineage() thema.Lineage {
 	return k.lin
 }
 
-// TODO docs
+// BindCore takes a
 func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOption) (Core, error) {
 	lin, err := def.Some().BindKindLineage(rt, opts...)
 	if err != nil {
@@ -84,7 +75,7 @@ func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOpti
 }
 
 // TODO docs
-func BindCoreResource[R Resource](k Core) TypedCore[R] {
+func BindCoreResource[R Resource](k Core) (TypedCore[R], error) {
 	// TODO implement me
 	panic("implement me")
 }

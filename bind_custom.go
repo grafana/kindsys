@@ -4,7 +4,8 @@ import (
 	"github.com/grafana/thema"
 )
 
-// genericCustom is a general representation of a parsed and validated Custom kind.
+// genericCore is a dynamically typed representation of a parsed and
+// validated [Custom] kind, implemented with thema.
 type genericCustom struct {
 	def Def[CustomProperties]
 	lin thema.Lineage
@@ -32,11 +33,6 @@ func (k genericCustom) CurrentVersion() thema.SyntacticVersion {
 
 func (k genericCustom) Group() string {
 	return k.def.Properties.CRD.Group
-}
-
-func (k genericCustom) New() UnstructuredResource {
-	// TODO implement me
-	panic("implement me")
 }
 
 var _ Custom = genericCustom{}
@@ -87,7 +83,7 @@ func BindCustom(rt *thema.Runtime, def Def[CustomProperties], opts ...thema.Bind
 }
 
 // TODO docs
-func BindCustomResource[R Resource](k Custom) TypedCustom[R] {
+func BindCustomResource[R Resource](k Custom) (TypedCustom[R], error) {
 	// TODO implement me
 	panic("implement me")
 }
