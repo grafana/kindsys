@@ -154,10 +154,6 @@ type Core interface {
 	// loaded and validated kind definition.
 	Def() Def[CoreProperties]
 
-	// New initializes an object of this kind, represented as an
-	// UnstructuredResource and populated with schema-specified defaults.
-	New() UnstructuredResource
-
 	// FromBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
 	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
@@ -188,10 +184,6 @@ type Custom interface {
 	// loaded and validated kind definition.
 	Def() Def[CustomProperties]
 
-	// New initializes an object of this kind, represented as an
-	// UnstructuredResource and populated with schema-specified defaults.
-	New() UnstructuredResource
-
 	// FromBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
 	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
@@ -220,10 +212,6 @@ type Composable interface {
 type TypedCore[R Resource] interface {
 	Core
 
-	// NewTyped creates a new object of this kind, represented as the generic type R
-	// and populated with schema-specified defaults.
-	NewTyped() R
-
 	// TypeFromBytes is the same as [Core.FromBytes], but returns an instance of the
 	// associated generic struct type instead of an [UnstructuredResource].
 	TypeFromBytes(b []byte, codec Decoder) (R, error)
@@ -239,10 +227,6 @@ type TypedCore[R Resource] interface {
 // Go type to which it is assignable (see [thema.BindType]).
 type TypedCustom[R Resource] interface {
 	Custom
-
-	// NewTyped creates a new object of this kind, represented as the generic type R
-	// and populated with schema-specified defaults.
-	NewTyped() R
 
 	// TypeFromBytes is the same as [Custom.FromBytes], but returns an instance of the
 	// associated generic struct type instead of an [UnstructuredResource].
