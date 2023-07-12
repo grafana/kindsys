@@ -82,3 +82,9 @@ func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOpti
 		lin: lin,
 	}, nil
 }
+
+// TODO docs
+func BindCoreResource[R Resource](k Core) TypedCore[R] {
+	// TODO implement me
+	panic("implement me")
+}

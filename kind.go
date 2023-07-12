@@ -137,8 +137,8 @@ type Kind interface {
 	Lineage() thema.Lineage
 }
 
-// Core is the untyped runtime representation of a Grafana core kind definition.
-// It is one in a family of interfaces, see [Kind] for context.
+// Core is the untyped, dynamic runtime representation of a Grafana core kind
+// definition. It is one in a family of interfaces, see [Kind] for context.
 //
 // A Core kind provides untyped interactions with its corresponding [Resource]
 // using [UnstructuredResource].
@@ -164,11 +164,11 @@ type Core interface {
 
 	// ToBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
-	ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
+	// ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
 }
 
-// Custom is the untyped runtime representation of a Grafana core kind definition.
-// It is one in a family of interfaces, see [Kind] for context.
+// Custom is the untyped, dynamic runtime representation of a Grafana core kind
+// definition. It is one in a family of interfaces, see [Kind] for context.
 //
 // A Custom kind provides untyped interactions with its corresponding [Resource]
 // using [UnstructuredResource].
@@ -209,8 +209,8 @@ type Composable interface {
 	Def() Def[ComposableProperties]
 }
 
-// TypedCore is the typed runtime representation of a Grafana core kind definition.
-// It is one in a family of interfaces, see [Kind] for context.
+// TypedCore is the statically typed runtime representation of a Grafana core
+// kind definition. It is one in a family of interfaces, see [Kind] for context.
 //
 // A TypedCore provides typed interactions with the [Resource] type given as its
 // generic type parameter. As it embeds [Core], untyped interaction is also available.
@@ -223,9 +223,13 @@ type TypedCore[R Resource] interface {
 	// NewTyped creates a new object of this kind, represented as the generic type R
 	// and populated with schema-specified defaults.
 	NewTyped() R
+
+	// TypeFromBytes is the same as [Core.FromBytes], but returns an instance of the
+	// associated generic struct type instead of an [UnstructuredResource].
+	TypeFromBytes(b []byte, codec Decoder) (R, error)
 }
 
-// TypedCustom is the typed runtime representation of a Grafana core kind definition.
+// TypedCustom is the statically typed runtime representation of a Grafana core kind definition.
 // It is one in a family of interfaces, see [Kind] for context.
 //
 // A TypedCustom provides typed interactions with the [Resource] type given as its
@@ -239,6 +243,10 @@ type TypedCustom[R Resource] interface {
 	// NewTyped creates a new object of this kind, represented as the generic type R
 	// and populated with schema-specified defaults.
 	NewTyped() R
+
+	// TypeFromBytes is the same as [Custom.FromBytes], but returns an instance of the
+	// associated generic struct type instead of an [UnstructuredResource].
+	TypeFromBytes(b []byte, codec Decoder) (R, error)
 }
 
 type Decoder interface {

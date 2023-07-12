@@ -85,3 +85,9 @@ func BindCustom(rt *thema.Runtime, def Def[CustomProperties], opts ...thema.Bind
 		lin: lin,
 	}, nil
 }
+
+// TODO docs
+func BindCustomResource[R Resource](k Custom) TypedCustom[R] {
+	// TODO implement me
+	panic("implement me")
+}
