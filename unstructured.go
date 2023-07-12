@@ -33,6 +33,43 @@ func (u UnstructuredResource) SetStaticMetadata(metadata StaticMetadata) {
 }
 
 func (u UnstructuredResource) Copy() Resource {
-	// TODO implement me
-	panic("implement me")
+	com := CommonMetadata{
+		UID:               u.Metadata.UID,
+		ResourceVersion:   u.Metadata.ResourceVersion,
+		Labels:            u.Metadata.Labels,
+		CreationTimestamp: u.Metadata.CreationTimestamp.UTC(),
+		UpdateTimestamp:   u.Metadata.UpdateTimestamp.UTC(),
+		CreatedBy:         u.Metadata.CreatedBy,
+		UpdatedBy:         u.Metadata.UpdatedBy,
+		ExtraFields:       nil,
+	}
+
+	copy(u.Metadata.Finalizers, com.Finalizers)
+	if u.Metadata.DeletionTimestamp != nil {
+		*com.DeletionTimestamp = *(u.Metadata.DeletionTimestamp)
+	}
+
+	for k, v := range u.Metadata.Labels {
+		com.Labels[k] = v
+	}
+
+	return UnstructuredResource{
+		Metadata:       com,
+		CustomMetadata: mapcopy(u.CustomMetadata),
+		Spec:           mapcopy(u.Spec),
+		Status:         mapcopy(u.Status),
+	}
+}
+
+func mapcopy(m map[string]any) map[string]any {
+	cp := make(map[string]any)
+	for k, v := range m {
+		if vm, ok := v.(map[string]any); ok {
+			cp[k] = mapcopy(vm)
+		} else {
+			cp[k] = v
+		}
+	}
+
+	return cp
 }

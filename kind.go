@@ -3,8 +3,9 @@ package kindsys
 import (
 	"fmt"
 
-	"github.com/grafana/kindsys/encoding"
 	"github.com/grafana/thema"
+
+	"github.com/grafana/kindsys/encoding"
 )
 
 // TODO docs
@@ -69,7 +70,7 @@ func (m Maturity) String() string {
 //
 // Conceptually, kinds are similar to class definitions in object-oriented
 // programming. They define a particular type of object, and how instances of
-// that object should be created. The object defined in a [Core] or [Custom] kind
+// that object should be created. The object defined by a [Core] or [Custom] kind
 // is called a [Resource]. TODO name for the associated object for composable kinds
 //
 // [Core], [Custom] and [Composable] all provide methods for unmarshaling []byte
@@ -190,6 +191,10 @@ type Custom interface {
 	// New initializes an object of this kind, represented as an
 	// UnstructuredResource and populated with schema-specified defaults.
 	New() UnstructuredResource
+
+	// FromBytes takes a []byte and a decoder, validates it against schema, and
+	// if validation is successful, unmarshals it into an UnstructuredResource.
+	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
 }
 
 // Composable is the untyped runtime representation of a Grafana core kind definition.
