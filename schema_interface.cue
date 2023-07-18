@@ -20,8 +20,7 @@ package kindsys
 //
 // On the producer side, Grafana plugin authors may provide Thema lineages
 // within Composable kinds declared in .cue files adjacent to their
-// plugin.json, following a pattern (see
-// github.com/grafana/grafana/pkg/plugins/pfs.GrafanaPlugin.composableKinds)
+// plugin.json, following a pattern (see GrafanaPlugin.composableKinds)
 // corresponding to the name of the schema interface. Each such definition is
 // an answer to "what."
 //
