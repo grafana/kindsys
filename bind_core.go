@@ -59,7 +59,7 @@ func (k genericCore) Lineage() thema.Lineage {
 	return k.lin
 }
 
-// BindCore takes a
+// TODO docs
 func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOption) (Core, error) {
 	lin, err := def.Some().BindKindLineage(rt, opts...)
 	if err != nil {

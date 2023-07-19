@@ -123,6 +123,19 @@ type Kind interface {
 	// instances of this Kind, the current version is used by default.
 	CurrentVersion() thema.SyntacticVersion
 
+	// Lineage returns the kind's [thema.Lineage]. The lineage contains the full
+	// history of object schemas associated with the kind.
+	//
+	// TODO separate this onto an optional, additional interface
+	Lineage() thema.Lineage
+}
+
+// ResourceKind represents a kind that defines a root object, or Kubernetish resource.
+//
+// TODO this is a temporary intermediate while we combine [Core] and [Custom]. This name will probably go away.
+type ResourceKind interface {
+	Kind
+
 	// Validate takes a []byte representing an object instance of this kind and
 	// checks that it is a valid instance of at least one schema defined in the
 	// kind.
@@ -134,11 +147,14 @@ type Kind interface {
 	// shape to Grafana's object shape. See [github.com/grafana/kindsys/encoding].
 	Validate(b []byte, codec Decoder) error
 
-	// Lineage returns the kind's [thema.Lineage]. The lineage contains the full
-	// history of object schemas associated with the kind.
+	// FromBytes takes a []byte and a decoder, validates it against schema, and
+	// if validation is successful, unmarshals it into an UnstructuredResource.
+	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
+
+	// Group returns the kind's group, as defined in the group field of the kind definition.
 	//
-	// TODO separate this onto an optional, additional interface
-	Lineage() thema.Lineage
+	// This is equivalent to the group of a Kubernetes CRD.
+	Group() string
 }
 
 // Core is the dynamically typed runtime representation of a Grafana core kind
@@ -147,20 +163,11 @@ type Kind interface {
 // A Core kind provides interactions with its corresponding [Resource] using
 // [UnstructuredResource].
 type Core interface {
-	Kind
-
-	// Group returns the kind's group, as defined in the group field of the kind definition.
-	//
-	// This is equivalent to the group of a Kubernetes CRD.
-	Group() string
+	ResourceKind
 
 	// Def returns a wrapper around the underlying CUE value that represents the
 	// loaded and validated kind definition.
 	Def() Def[CoreProperties]
-
-	// FromBytes takes a []byte and a decoder, validates it against schema, and
-	// if validation is successful, unmarshals it into an UnstructuredResource.
-	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
 
 	// ToBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
@@ -177,20 +184,11 @@ type Core interface {
 // is likely that this distinction will go away in the future, leaving only
 // Custom kinds.
 type Custom interface {
-	Kind
-
-	// Group returns the kind's group, as defined in the group field of the kind definition.
-	//
-	// This is equivalent to the group field in a Kubernetes CRD.
-	Group() string
+	ResourceKind
 
 	// Def returns a wrapper around the underlying CUE value that represents the
 	// loaded and validated kind definition.
 	Def() Def[CustomProperties]
-
-	// FromBytes takes a []byte and a decoder, validates it against schema, and
-	// if validation is successful, unmarshals it into an UnstructuredResource.
-	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
 }
 
 // Composable is the untyped runtime representation of a Grafana core kind definition.
@@ -237,6 +235,12 @@ type TypedCustom[R Resource] interface {
 	TypeFromBytes(b []byte, codec Decoder) (R, error)
 }
 
+// Decoder takes a []byte representing a serialized resource and decodes it into
+// the intermediate [encoding.GrafanaShapeBytes] form. Implementations should
+// vary in the form of the []byte they expect to take - e.g. JSON vs. YAML;
+// Kubernetes shape vs. Grafana shape.
+//
+// TODO do less with these by deciding on a single, consistent object format
 type Decoder interface {
 	Decode(b []byte) (encoding.GrafanaShapeBytes, error)
 }

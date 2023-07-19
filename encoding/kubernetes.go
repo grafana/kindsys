@@ -226,11 +226,13 @@ func (k *KubernetesJSONDecoder) Decode(bytes []byte) (GrafanaShapeBytes, error) 
 	}
 	// Other common metadata keys are in annotations
 	cmd.CreatedBy = kubeMeta.Annotations[annotationPrefix+"createdBy"]
-	delete(kubeMeta.Annotations, annotationPrefix+"createdBy")
 	cmd.UpdatedBy = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
-	delete(kubeMeta.Annotations, annotationPrefix+"updatedBy")
 	cmd.UpdateTimestamp, _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
-	delete(kubeMeta.Annotations, annotationPrefix+"updateTimestamp")
+
+	// TODO deletions commented for now, but the question about whether to leave them is kinda fundamental to converting between kubernetes and grafana shapes
+	//delete(kubeMeta.Annotations, annotationPrefix+"updatedBy")
+	//delete(kubeMeta.Annotations, annotationPrefix+"createdBy")
+	//delete(kubeMeta.Annotations, annotationPrefix+"updateTimestamp")
 
 	// For all other annotation keys which begin with annotationPrefix (grafana.com/), strip the prefix and put them in custom metadata
 	customMeta := make(map[string]any)
@@ -244,7 +246,7 @@ func (k *KubernetesJSONDecoder) Decode(bytes []byte) (GrafanaShapeBytes, error) 
 			// We've already handled this one
 			continue
 		}
-		delete(kubeMeta.Annotations, key)
+		//delete(kubeMeta.Annotations, key)
 		customMeta[tkey] = val
 	}
 	// With annotations keys trimmed out of the original, we can add it to extra fields in common metadata

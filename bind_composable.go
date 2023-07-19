@@ -10,13 +10,7 @@ type genericComposable struct {
 }
 
 func (k genericComposable) Maturity() Maturity {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (k genericComposable) Validate(b []byte, codec Decoder) error {
-	// TODO implement me
-	panic("implement me")
+	return k.def.Properties.Maturity
 }
 
 func (k genericComposable) CurrentVersion() thema.SyntacticVersion {
