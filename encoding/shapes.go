@@ -3,7 +3,7 @@ package encoding
 // KubernetesShapeBytes are a partially-encoded representation of a []byte that
 // is in the standard Kubernetes shape.
 type KubernetesShapeBytes struct {
-	// Spec contains the marshaled SpecObject. It should be unmarshalable directly into the Object-implementation's
+	// Spec contains the marshaled SpecObject. It should be unmarshalable directly into the Resource-implementation's
 	// Spec object using an unmarshaler of the appropriate WireFormat type
 	Spec []byte
 	// Metadata includes object-specific metadata, and may include CommonMetadata depending on implementation.

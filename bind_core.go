@@ -24,15 +24,13 @@ func (k genericCore) Group() string {
 	return k.def.Properties.CRD.Group
 }
 
-func (k genericCore) FromBytes(b []byte, codec Decoder) (UnstructuredResource, error) {
+func (k genericCore) FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error) {
 	inst, err := bytesToAnyInstance(k, b, codec)
 	if err != nil {
-		return UnstructuredResource{}, err
+		return nil, err
 	}
 	// we have a valid instance! decode into unstructured
-	// TODO implement me
-	_ = inst
-	panic("implement me")
+	return grafanaShapeToUnstructured(k, inst)
 }
 
 var _ Core = genericCore{}

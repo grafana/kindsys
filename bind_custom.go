@@ -11,10 +11,10 @@ type genericCustom struct {
 	lin thema.Lineage
 }
 
-func (k genericCustom) FromBytes(b []byte, codec Decoder) (UnstructuredResource, error) {
+func (k genericCustom) FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error) {
 	inst, err := bytesToAnyInstance(k, b, codec)
 	if err != nil {
-		return UnstructuredResource{}, err
+		return nil, err
 	}
 	// we have a valid instance! decode into unstructured
 	// TODO implement me

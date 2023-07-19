@@ -206,80 +206,57 @@ func (k *KubernetesJSONDecoder) Decode(bytes []byte) (GrafanaShapeBytes, error) 
 		}
 	}
 
-	meta := make(map[string]any)
-	meta["uid"] = string(kubeMeta.UID)
-	meta["resourceVersion"] = kubeMeta.ResourceVersion
-	meta["creationTimestamp"] = kubeMeta.CreationTimestamp.Time.UTC()
-	if len(kubeMeta.Labels) != 0 {
-		meta["labels"] = kubeMeta.Labels
-	}
-	if kubeMeta.Finalizers != nil {
-		meta["finalizers"] = kubeMeta.Finalizers
-	}
-	meta["createdBy"] = kubeMeta.Annotations[annotationPrefix+"createdBy"]
-	meta["updatedBy"] = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
-	meta["updateTimestamp"], _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
-
 	// Break up the metadata into common and custom, then re-encode both
-	// For all annotation keys which begin with annotationPrefix (grafana.com/), strip the prefix and put them directly in meta
-	// TODO smashing together upstream k8s metadata, kindsys metadata, and per-kind custom metadata in one struct is awkward. Consider formal separation
+	cmd := commonMetadata{
+		UID:               string(kubeMeta.UID),
+		ResourceVersion:   kubeMeta.ResourceVersion,
+		Labels:            kubeMeta.Labels,
+		CreationTimestamp: kubeMeta.CreationTimestamp.Time.UTC(),
+		Finalizers:        kubeMeta.Finalizers,
+	}
+	if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
+		cmd.ExtraFields["ownerReferences"] = kubeMeta.OwnerReferences
+	}
+	if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
+		cmd.ExtraFields["managedFields"] = kubeMeta.ManagedFields
+	}
+	// deletionTimestamp can be nil, but is of a kubernetes time type, so we have to cast if non-nil
+	if kubeMeta.DeletionTimestamp != nil {
+		cmd.DeletionTimestamp = &kubeMeta.DeletionTimestamp.Time
+	}
+	// Other common metadata keys are in annotations
+	cmd.CreatedBy = kubeMeta.Annotations[annotationPrefix+"createdBy"]
+	delete(kubeMeta.Annotations, annotationPrefix+"createdBy")
+	cmd.UpdatedBy = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
+	delete(kubeMeta.Annotations, annotationPrefix+"updatedBy")
+	cmd.UpdateTimestamp, _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
+	delete(kubeMeta.Annotations, annotationPrefix+"updateTimestamp")
+
+	// For all other annotation keys which begin with annotationPrefix (grafana.com/), strip the prefix and put them in custom metadata
+	customMeta := make(map[string]any)
 	for key, val := range kubeMeta.Annotations {
 		if len(key) <= len(annotationPrefix) || key[:len(annotationPrefix)] != annotationPrefix {
 			// Keep going if the key doesn't start with annotationPrefix
 			continue
 		}
-		key = key[len(annotationPrefix):]
-		if _, ok := commonMetadataKeys[key]; ok {
+		tkey := key[len(annotationPrefix):]
+		if _, ok := commonMetadataKeys[tkey]; ok {
 			// We've already handled this one
 			continue
 		}
-		meta[key] = val
+		delete(kubeMeta.Annotations, key)
+		customMeta[tkey] = val
+	}
+	// With annotations keys trimmed out of the original, we can add it to extra fields in common metadata
+	cmd.ExtraFields = map[string]any{
+		"generation":  kubeMeta.Generation,
+		"annotations": kubeMeta.Annotations,
 	}
 
-	extras := make(map[string]any)
-	extras["generation"] = kubeMeta.Generation
-	extras["annotations"] = kubeMeta.Annotations
-	extras["ownerReferences"] = kubeMeta.OwnerReferences
-
-	if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
-		extras["ownerReferences"] = kubeMeta.OwnerReferences
+	res.Metadata, err = json.Marshal(cmd)
+	if err != nil {
+		return res, err
 	}
-	if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
-		extras["managedFields"] = kubeMeta.ManagedFields
-	}
-	if kubeMeta.DeletionTimestamp != nil {
-		meta["deletionTimestamp"] = &kubeMeta.DeletionTimestamp.Time
-	}
-	meta["extraFields"] = extras
-
-	// kept in the hopeful case that we switch to separated metadata
-	// cmd := commonMetadata{
-	// 	UID:               string(kubeMeta.UID),
-	// 	ResourceVersion:   kubeMeta.ResourceVersion,
-	// 	Labels:            kubeMeta.Labels,
-	// 	CreationTimestamp: kubeMeta.CreationTimestamp.Time.UTC(),
-	// 	Finalizers:        kubeMeta.Finalizers,
-	// 	ExtraFields: map[string]any{
-	// 		"generation":  kubeMeta.Generation,
-	// 		"annotations": kubeMeta.Annotations,
-	// 	},
-	// }
-	// if kubeMeta.OwnerReferences != nil && len(kubeMeta.OwnerReferences) > 0 {
-	// 	cmd.ExtraFields["ownerReferences"] = kubeMeta.OwnerReferences
-	// }
-	// if kubeMeta.ManagedFields != nil && len(kubeMeta.ManagedFields) > 0 {
-	// 	cmd.ExtraFields["managedFields"] = kubeMeta.ManagedFields
-	// }
-	// // deletionTimestamp can be nil, but is of a kubernetes time type, so we have to cast if non-nil
-	// if kubeMeta.DeletionTimestamp != nil {
-	// 	cmd.DeletionTimestamp = &kubeMeta.DeletionTimestamp.Time
-	// }
-	// // Other common metadata keys are in annotations
-	// cmd.CreatedBy = kubeMeta.Annotations[annotationPrefix+"createdBy"]
-	// cmd.UpdatedBy = kubeMeta.Annotations[annotationPrefix+"updatedBy"]
-	// cmd.UpdateTimestamp, _ = time.Parse(time.RFC3339, kubeMeta.Annotations[annotationPrefix+"updateTimestamp"])
-	// res.CustomMetadata, err = json.Marshal(meta)
-
-	res.Metadata, err = json.Marshal(meta)
+	res.CustomMetadata, err = json.Marshal(customMeta)
 	return res, err
 }

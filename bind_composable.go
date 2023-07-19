@@ -9,6 +9,11 @@ type genericComposable struct {
 	lin thema.Lineage
 }
 
+func (k genericComposable) Maturity() Maturity {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (k genericComposable) Validate(b []byte, codec Decoder) error {
 	// TODO implement me
 	panic("implement me")

@@ -1,6 +1,6 @@
 package kindsys
 
-var _ Resource = UnstructuredResource{}
+var _ Resource = &UnstructuredResource{}
 
 // UnstructuredResource is an untyped representation of [Resource]. In the same
 // way that map[string]any can represent any JSON []byte, UnstructuredResource
@@ -8,57 +8,48 @@ var _ Resource = UnstructuredResource{}
 // strongly typed, and lacks any user-defined methods that may exist on a
 // kind-specific struct that implements [Resource].
 type UnstructuredResource struct {
-	Metadata       CommonMetadata `json:"metadata"`
-	CustomMetadata map[string]any `json:"customMetadata"`
-	Spec           map[string]any `json:"spec,omitempty"`
-	Status         map[string]any `json:"status,omitempty"`
+	BasicMetadataObject
+	Spec   map[string]any `json:"spec,omitempty"`
+	Status map[string]any `json:"status,omitempty"`
 }
 
-func (u UnstructuredResource) CommonMetadata() CommonMetadata {
-	return u.Metadata
+func (u *UnstructuredResource) SpecObject() any {
+	return u.Spec
 }
 
-func (u UnstructuredResource) SetCommonMetadata(metadata CommonMetadata) {
-	u.Metadata = metadata
+func (u *UnstructuredResource) Subresources() map[string]any {
+	return map[string]any{
+		"status": u.Status,
+	}
 }
 
-func (u UnstructuredResource) StaticMetadata() StaticMetadata {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (u UnstructuredResource) SetStaticMetadata(metadata StaticMetadata) {
-	// TODO implement me
-	panic("implement me")
-}
-
-func (u UnstructuredResource) Copy() Resource {
+func (u *UnstructuredResource) Copy() Resource {
 	com := CommonMetadata{
-		UID:               u.Metadata.UID,
-		ResourceVersion:   u.Metadata.ResourceVersion,
-		Labels:            u.Metadata.Labels,
-		CreationTimestamp: u.Metadata.CreationTimestamp.UTC(),
-		UpdateTimestamp:   u.Metadata.UpdateTimestamp.UTC(),
-		CreatedBy:         u.Metadata.CreatedBy,
-		UpdatedBy:         u.Metadata.UpdatedBy,
-		ExtraFields:       nil,
+		UID:               u.CommonMeta.UID,
+		ResourceVersion:   u.CommonMeta.ResourceVersion,
+		CreationTimestamp: u.CommonMeta.CreationTimestamp.UTC(),
+		UpdateTimestamp:   u.CommonMeta.UpdateTimestamp.UTC(),
+		CreatedBy:         u.CommonMeta.CreatedBy,
+		UpdatedBy:         u.CommonMeta.UpdatedBy,
 	}
 
-	copy(u.Metadata.Finalizers, com.Finalizers)
-	if u.Metadata.DeletionTimestamp != nil {
-		*com.DeletionTimestamp = *(u.Metadata.DeletionTimestamp)
+	copy(u.CommonMeta.Finalizers, com.Finalizers)
+	if u.CommonMeta.DeletionTimestamp != nil {
+		*com.DeletionTimestamp = *(u.CommonMeta.DeletionTimestamp)
 	}
-
-	for k, v := range u.Metadata.Labels {
+	for k, v := range u.CommonMeta.Labels {
 		com.Labels[k] = v
 	}
+	com.ExtraFields = mapcopy(u.CommonMeta.ExtraFields)
 
-	return UnstructuredResource{
-		Metadata:       com,
-		CustomMetadata: mapcopy(u.CustomMetadata),
-		Spec:           mapcopy(u.Spec),
-		Status:         mapcopy(u.Status),
+	cp := UnstructuredResource{
+		Spec:   mapcopy(u.Spec),
+		Status: mapcopy(u.Status),
 	}
+
+	cp.CommonMeta = com
+	cp.CustomMeta = mapcopy(u.CustomMeta)
+	return &cp
 }
 
 func mapcopy(m map[string]any) map[string]any {

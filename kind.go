@@ -160,7 +160,7 @@ type Core interface {
 
 	// FromBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
-	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
+	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
 
 	// ToBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
@@ -190,7 +190,7 @@ type Custom interface {
 
 	// FromBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
-	FromBytes(b []byte, codec Decoder) (UnstructuredResource, error)
+	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
 }
 
 // Composable is the untyped runtime representation of a Grafana core kind definition.
