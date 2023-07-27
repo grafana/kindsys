@@ -78,6 +78,7 @@ func (gen *genTSVeneerIndex) extractTSIndexVeneerElements(def kindsys.Kind, tf *
 	comm := def.Props().Common()
 
 	// Check the root, then walk the tree
+	schPath := cue.MakePath(cue.Hid("_#schema", "github.com/grafana/thema"))
 	rootv := lin.Latest().Underlying().LookupPath(schPath)
 
 	var raw, custom, rawD, customD ast.Idents
