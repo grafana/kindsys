@@ -18,27 +18,6 @@ export interface spec {
 }
 
 export interface Folder {
-  spec: {
-    /**
-     * Unique folder id. (will be k8s name)
-     */
-    uid: string;
-    /**
-     * UID of the parent folder.
-     */
-    parent?: string;
-    /**
-     * Folder title
-     */
-    title: string;
-    /**
-     * Description of the folder.
-     */
-    description?: string;
-  };
-}
-
-export interface Folder {
   /**
    * metadata contains embedded CommonMetadata and can be extended with custom string fields
    * TODO: use CommonMetadata instead of redefining here; currently needs to be defined here
@@ -59,7 +38,24 @@ export interface Folder {
     extraFields: Record<string, unknown>;
     labels: Record<string, string>;
   };
-  spec: unknown;
+  spec: {
+    /**
+     * Unique folder id. (will be k8s name)
+     */
+    uid: string;
+    /**
+     * UID of the parent folder.
+     */
+    parent?: string;
+    /**
+     * Folder title
+     */
+    title: string;
+    /**
+     * Description of the folder.
+     */
+    description?: string;
+  };
   status: {
     /**
      * operatorStates is a map of operator ID to operator state evaluations.
