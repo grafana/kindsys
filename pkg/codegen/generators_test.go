@@ -10,13 +10,14 @@ import (
 
 func TestPrefixer(t *testing.T) {
 	req := require.New(t)
-	inputFile := codejen.NewFile("some.file", []byte("with content"))
+	fileContent := []byte("with content")
+	inputFile := codejen.NewFile("some.file", fileContent)
 
 	resultFile, err := Prefixer("/the/prefix")(*inputFile)
 	req.NoError(err)
 
 	req.Equal("/the/prefix/some.file", resultFile.RelativePath)
-	req.NotNil(resultFile.Data)
+	req.Equal(fileContent, resultFile.Data)
 }
 
 func TestSlashHeaderMapper(t *testing.T) {
