@@ -7,11 +7,10 @@ require (
 	github.com/dave/dst v0.27.2
 	github.com/grafana/codejen v0.0.4-0.20230321061741-77f656893a3d
 	github.com/grafana/cuetsy v0.1.11
-	github.com/grafana/thema v0.0.0-20230615161902-b6e21996aef8
+	github.com/grafana/thema v0.0.0-20230801151112-711d7fd5162f
 	github.com/matryer/is v1.4.1
 	github.com/stretchr/testify v1.8.2
 	github.com/yalue/merged_fs v1.2.2
-	golang.org/x/tools v0.11.0
 	k8s.io/apimachinery v0.26.2
 )
 
@@ -51,7 +50,7 @@ require (
 	github.com/perimeterx/marshmallow v1.1.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/protocolbuffers/txtpbfmt v0.0.0-20230706122021-58d06d1b3926 // indirect
+	github.com/protocolbuffers/txtpbfmt v0.0.0-20230730201308-0c31dbd32b9f // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
@@ -62,6 +61,7 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/tools v0.11.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
