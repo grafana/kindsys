@@ -80,11 +80,23 @@ _sharedKind: {
 }
 
 // properties shared by all kinds that represent a complete object from root (i.e., not composable)
-_rootKind: {
+// TODO collapse Core and Custom into just ResourceKind, then we can get rid of this
+_resourceKind: {
 	// description is a brief narrative description of the nature and purpose of the kind.
 	// The contents of this field is shown to end users. Prefer clear, concise wording
 	// with minimal jargon.
 	description: nonEmptyString
+
+	// slots defines this resource kind's set of slots into which Composable kinds can be dynamically injected.
+	slots?: [N=string]: #Slot & { name: N }
+}
+
+#Slot: {
+	// Name is the string that uniquely identifies this slot within the kind.
+	name: string
+	// schemaInterface is the string name of the schema interface that this slot accepts.
+	schemaInterface: or([ for k, _ in schemaInterfaces {k} ])
+	// TODO to actually express these in kind defs we need to take more props. For now we've sloppy-hardcoded dashboard stuff in Go impl, lollll
 }
 
 // Maturity indicates the how far a given kind definition is in its initial
@@ -96,7 +108,7 @@ Maturity: "merged" | "experimental" | "stable" | "mature"
 // and datasources, are represented as core kinds.
 Core: S=close({
 	_sharedKind
-	_rootKind
+	_resourceKind
 
 	lineage: { name: S.machineName, joinSchema: _crdSchema }
 	lineageIsGroup: false

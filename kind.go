@@ -172,6 +172,15 @@ type Core interface {
 	// ToBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
 	// ToBytes(UnstructuredResource, codec Encoder) ([]byte, error)
+
+	// Compose takes a set of Composable kinds that fulfill a particular
+	// SchemaInterface and constructs a new Core with the provided composable kinds
+	// injected into the composition slot specified in the receiving Core kind's
+	// definition.
+	//
+	// The returned Core's Validate and Translate methods will trigger these
+	// methods for all the composed kinds.
+	Compose(slot Slot, kinds ...Composable) (Core, error)
 }
 
 // Custom is the dynamically typed runtime representation of a Grafana custom kind
@@ -189,6 +198,15 @@ type Custom interface {
 	// Def returns a wrapper around the underlying CUE value that represents the
 	// loaded and validated kind definition.
 	Def() Def[CustomProperties]
+
+	// Compose takes a set of Composable kinds that fulfill a particular
+	// SchemaInterface and constructs a new Custom with the provided composable kinds
+	// injected into the composition slot specified in the receiving Custom kind's
+	// definition.
+	//
+	// The returned Custom's Validate and Translate methods will trigger these
+	// methods for all the composed kinds.
+	Compose(slot Slot, kinds ...Composable) (Custom, error)
 }
 
 // Composable is the untyped runtime representation of a Grafana core kind definition.
@@ -201,6 +219,10 @@ type Composable interface {
 	// Def returns a wrapper around the underlying CUE value that represents the
 	// loaded and validated kind definition.
 	Def() Def[ComposableProperties]
+
+	// Implements returns the [SchemaInterface] that is implemented by this Composable
+	// kind.
+	Implements() SchemaInterface
 }
 
 // TypedCore is the statically typed runtime representation of a Grafana core
@@ -217,6 +239,9 @@ type TypedCore[R Resource] interface {
 	// TypeFromBytes is the same as [Core.FromBytes], but returns an instance of the
 	// associated generic struct type instead of an [UnstructuredResource].
 	TypeFromBytes(b []byte, codec Decoder) (R, error)
+
+	// TODO these too
+	// TypedCompose(slot Slot, kinds ...Composable) (TypedCore[R], error)
 }
 
 // TypedCustom is the statically typed runtime representation of a Grafana core kind definition.
@@ -233,6 +258,9 @@ type TypedCustom[R Resource] interface {
 	// TypeFromBytes is the same as [Custom.FromBytes], but returns an instance of the
 	// associated generic struct type instead of an [UnstructuredResource].
 	TypeFromBytes(b []byte, codec Decoder) (R, error)
+
+	// TODO these too
+	// TypedCompose(slot Slot, kinds ...Composable) (TypedCustom[R], error)
 }
 
 // Decoder takes a []byte representing a serialized resource and decodes it into

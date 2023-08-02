@@ -28,6 +28,7 @@ type CoreProperties struct {
 		Scope       string `json:"scope"`
 		DummySchema bool   `json:"dummySchema"`
 	} `json:"crd"`
+	Slots map[string]Slot `json:"slots"`
 }
 
 func (m CoreProperties) _private() {}
@@ -52,6 +53,17 @@ type CustomProperties struct {
 		Frontend bool `json:"frontend"`
 		Backend  bool `json:"backend"`
 	} `json:"codegen"`
+	Slots map[string]Slot `json:"slots"`
+}
+
+// Slot describes a single composition slot defined in a Core or Custom kind.
+type Slot struct {
+	// Name is the string that uniquely identifies this slot within the kind.
+	Name string `json:"name"`
+
+	// SchemaInterface is the string name of the schema interface that this slot
+	// accepts.
+	SchemaInterface string `json:"schemaInterface"`
 }
 
 func (m CustomProperties) _private() {}

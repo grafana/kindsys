@@ -67,6 +67,14 @@ func (k genericCustom) Lineage() thema.Lineage {
 	return k.lin
 }
 
+func (k genericCustom) Compose(slot Slot, kinds ...Composable) (Custom, error) {
+	// TODO implement composition generically once we can fully describe a slot declaratively
+	return nil, &ErrNoSlotInKind{
+		Slot: slot,
+		Kind: k,
+	}
+}
+
 // BindCustom creates a Custom-implementing type from a def, runtime, and opts
 //
 //nolint:lll
