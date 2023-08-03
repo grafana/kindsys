@@ -1,8 +1,6 @@
 package kindsys
 
 import (
-	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/grafana/thema"
@@ -69,54 +67,54 @@ func (k genericCore) Lineage() thema.Lineage {
 
 func (k genericCore) Compose(slot Slot, kinds ...Composable) (Core, error) {
 	// TODO implement composition generically once we can fully describe a slot declaratively
-	// return nil, &ErrNoSlotInKind{
-	// 	Slot: slot,
-	// 	Kind: k,
-	// }
+	return nil, &ErrNoSlotInKind{
+		Slot: slot,
+		Kind: k,
+	}
 
 	// first, check that this kind supports this slot
-	if k.def.Properties.Slots[slot.Name] != slot {
-		return nil, &ErrNoSlotInKind{
-			Slot: slot,
-			Kind: k,
-		}
-	}
-
-	schif, err := FindSchemaInterface(slot.SchemaInterface)
-	if err != nil {
-		panic(fmt.Sprintf("unreachable - slot was for nonexistent schema interface %s which should have been rejected at bind time", slot.SchemaInterface))
-	}
-
-	// then check that all provided kinds are implementors of the slot
-	for _, kind := range kinds {
-		if kind.Implements().Name() != schif.Name() {
-			return nil, &ErrKindDoesNotImplementInterface{
-				Kind:      kind,
-				Interface: schif,
-			}
-		}
-	}
-
-	// Inputs look good. Make a copy with our built-up compose map
-	com := make(map[string][]Composable)
-	for k, v := range k.composed {
-		com[k] = v
-	}
-
-	var all []Composable
-	copy(all, com[slot.Name])
-	all = append(all, kinds...)
-	// Sort to ensure deterministic output of validation error messages, etc.
-	sort.Slice(all, func(i, j int) bool {
-		return all[i].Name() < all[j].Name()
-	})
-	com[slot.Name] = all
-
-	return genericCore{
-		def:      k.def,
-		lin:      k.lin,
-		composed: com,
-	}, nil
+	// if k.def.Properties.Slots[slot.Name] != slot {
+	// 	return nil, &ErrNoSlotInKind{
+	// 		Slot: slot,
+	// 		Kind: k,
+	// 	}
+	// }
+	//
+	// schif, err := FindSchemaInterface(slot.SchemaInterface)
+	// if err != nil {
+	// 	panic(fmt.Sprintf("unreachable - slot was for nonexistent schema interface %s which should have been rejected at bind time", slot.SchemaInterface))
+	// }
+	//
+	// // then check that all provided kinds are implementors of the slot
+	// for _, kind := range kinds {
+	// 	if kind.Implements().Name() != schif.Name() {
+	// 		return nil, &ErrKindDoesNotImplementInterface{
+	// 			Kind:      kind,
+	// 			Interface: schif,
+	// 		}
+	// 	}
+	// }
+	//
+	// // Inputs look good. Make a copy with our built-up compose map
+	// com := make(map[string][]Composable)
+	// for k, v := range k.composed {
+	// 	com[k] = v
+	// }
+	//
+	// var all []Composable
+	// copy(all, com[slot.Name])
+	// all = append(all, kinds...)
+	// // Sort to ensure deterministic output of validation error messages, etc.
+	// sort.Slice(all, func(i, j int) bool {
+	// 	return all[i].Name() < all[j].Name()
+	// })
+	// com[slot.Name] = all
+	//
+	// return genericCore{
+	// 	def:      k.def,
+	// 	lin:      k.lin,
+	// 	composed: com,
+	// }, nil
 }
 
 // TODO docs
