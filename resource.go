@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// A Resource is a single instance of a Grafana [Kind], either [Core] or [Custom].
+// A Resource is a single instance of a Grafana resources
 //
 // The relationship between Resource and [Kind] is similar to the
 // relationship between objects and classes in conventional object oriented
@@ -19,12 +19,8 @@ import (
 // - Some use cases need to operate generically over resources of any kind.
 // - Go generics do not allow the ergonomic expression of certain needed constraints.
 //
-// The [Core] and [Custom] interfaces are intended for the generic operation
-// use case, fulfilling [Resource] using [UnstructuredResource].
-//
 // For known, specific kinds, it is usually possible to rely on code generation
-// to produce a struct that implements [Resource] for each kind. Such a struct
-// can be used as the generic type parameter to create a [TypedCore] or [TypedCustom]
+// to produce a struct that implements [Resource] for each kind.
 type Resource interface {
 	// CommonMetadata returns the Resource's CommonMetadata
 	CommonMetadata() CommonMetadata

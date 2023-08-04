@@ -40,7 +40,7 @@ func loadpFrameworkOnce() {
 }
 
 func doLoadFrameworkCUE(ctx *cue.Context) (cue.Value, error) {
-	v, err := BuildInstance(ctx, ".", "kindsys", nil)
+	v, err := BuildInstance(ctx, ".", "themasys", nil)
 	if err != nil {
 		return v, err
 	}
