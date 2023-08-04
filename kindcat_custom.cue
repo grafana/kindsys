@@ -9,7 +9,9 @@ import (
 // _kubeObjectMetadata is metadata found in a kubernetes object's metadata field.
 // It is not exhaustive and only includes fields which may be relevant to a kind's implementation,
 // As it is also intended to be generic enough to function with any API Server.
-_kubeObjectMetadata: {
+KubeObjectMetadata: {
+	namespace: string
+	name: string
     uid: string
     creationTimestamp: string & time.Time
     deletionTimestamp?: string & time.Time
@@ -18,12 +20,21 @@ _kubeObjectMetadata: {
     labels: {
         [string]: string
     }
+	annotations: {
+		[string]: string
+	}
+}
+
+GrafanaMetadata: {
+	updateTimestamp: string & time.Time
+	createdBy: string
+	updatedBy: string
 }
 
 // CommonMetadata is a combination of API Server metadata and additional metadata 
 // intended to exist commonly across all kinds, but may have varying implementations as to its storage mechanism(s).
 CommonMetadata: {
-    _kubeObjectMetadata
+    KubeObjectMetadata
 
     updateTimestamp: string & time.Time
     createdBy: string
@@ -37,37 +48,20 @@ CommonMetadata: {
 	}
 }
 
-// _crdSchema is the schema format for a CRD.
-_crdSchema: {
-	// metadata contains embedded CommonMetadata and can be extended with custom string fields
-	// TODO: use CommonMetadata instead of redefining here; currently needs to be defined here 
-	// without external reference as using the CommonMetadata reference breaks thema codegen.
-	metadata: {
-		_kubeObjectMetadata
-		
-		updateTimestamp: string & time.Time
-		createdBy: string
-		updatedBy: string
-
-		// TODO: additional metadata fields?
-		// Additional metadata can be added at any future point, as it is allowed to be constant across lineage versions
-
-		// extraFields is reserved for any fields that are pulled from the API server metadata but do not have concrete fields in the CUE metadata
-		extraFields: {
-			[string]: _
-		}
-	} & {
-		// All extensions to this metadata need to have string values (for APIServer encoding-to-annotations purposes)
-		// Can't use this as it's not yet enforced CUE:
-		//...string
-		// Have to do this gnarly regex instead
-		[!~"^(uid|creationTimestamp|deletionTimestamp|finalizers|resourceVersion|labels|updateTimestamp|createdBy|updatedBy|extraFields)$"]: string
-	}
+_grdSchema: {
+	// metadata is the kubernetes metadata
+	metadata: KubeObjectMetadata
+	// grafanaMetadata is the grafana metadata
+	grafanaMetadata: GrafanaMetadata
+	// kindMetadata is kind-specfic metadata. It may be empty.
+	kindMetadata?: _
+	// spec is the resource's body
 	spec: _
 
 	// cuetsy is not happy creating spec with the MinFields constraint directly
 	_specIsNonEmpty: spec & struct.MinFields(0)
 
+	// status is the status subresource
 	status: {
 		#OperatorState: {
 			// lastEvaluation is the ResourceVersion last evaluated
@@ -120,11 +114,13 @@ Custom: S={
 	if isCRD {
 		// If the crd trait is defined, the schemas in the lineage must follow the format:
 		// {
-		//     "metadata": CommonMetadata & {...string}
+		//     "metadata": KubeMetadata
+		//     "grafanaMetadata": GrafanaMetadata
+		//     "kindMetadata": {...}
 		//     "spec": {...}
 		//     "status": {...}
 		// }
-		lineage: joinSchema: _crdSchema
+		lineage: joinSchema: _grdSchema
 	}
 
 	// crd contains properties specific to converting this kind to a Kubernetes CRD.
