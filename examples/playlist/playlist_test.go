@@ -14,7 +14,7 @@ func TestRawVersion(t *testing.T) {
 	require.NoError(t, err)
 
 	checkValidVersion(t, sys)
-	// checkInvalidVersion(t, sys)
+	checkInvalidVersion(t, sys)
 }
 
 func TestThemaVersion(t *testing.T) {
@@ -49,15 +49,15 @@ func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {
 		obj, err := k.Read(bytes.NewReader(raw), true)
 		require.NoError(t, err, path)
 		common := obj.CommonMetadata()
-		require.Equal(t, "me", common.CreatedBy)
-		require.Equal(t, "you", common.UpdatedBy)
+		require.Equal(t, "me", common.CreatedBy, path)
+		require.Equal(t, "you", common.UpdatedBy, path)
 
 		static := obj.StaticMetadata()
 		// TODO!  fails for thema :(
 		// require.Equal(t, "ba2eea3b", static.Name)
 		// require.Equal(t, "org-22", static.Namespace)
-		require.Equal(t, k.GetKindInfo().Group, static.Group)
-		require.Equal(t, k.GetKindInfo().Kind, static.Kind)
+		require.Equal(t, k.GetKindInfo().Group, static.Group, path)
+		require.Equal(t, k.GetKindInfo().Kind, static.Kind, path)
 	}
 }
 
@@ -66,18 +66,16 @@ func checkInvalidVersion(t *testing.T, k kindsys.ResourceKind) {
 		"testdata/invalid-v0-0.json",
 		"testdata/invalid-v0-1.json",
 		"testdata/invalid-v1-0.json",
+		"testdata/invalid-vX-bad-group.json",
+		"testdata/invalid-vX-bad-kind.json",
+		"testdata/invalid-vX-missing-spec.json",
 	}
 
 	for _, path := range validFiles {
 		raw, err := os.ReadFile(path)
 		require.NoError(t, err, path)
 
-		obj, err := k.Read(bytes.NewReader(raw), true)
+		_, err = k.Read(bytes.NewReader(raw), true)
 		require.Error(t, err, path)
-
-		// Should the read return an object if it can?
-		if obj != nil {
-			require.Equal(t, "playlists.ext.grafana.com", obj.StaticMetadata().Group)
-		}
 	}
 }

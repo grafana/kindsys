@@ -18,14 +18,18 @@
         "items": [
             {
                 "type": "dashboard_by_tag",
-                "value": "panel-tests"
+                "value": "tagA, tagB"
             },
             {
                 "type": "dashboard_by_uid",
-                "value": "XYZ"
+                "value": "AAA"
+            }, 
+            {
+                "type": "dashboard_by_uid",
+                "value": "BBB"
             }
         ],
-        "name": "Dashboard with tag and uid (no internal id)",
+        "name": "Sample playlist",
         "xxx": "just here for the change detection version bypass"
     }
 }

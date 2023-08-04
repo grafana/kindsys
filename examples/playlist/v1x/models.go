@@ -1,5 +1,7 @@
 package v1x
 
+import "fmt"
+
 //*******************************************************************************************
 // NOTE!!
 // This file is exploring generating the JSONSchema from golang... but that is paused for now
@@ -45,4 +47,28 @@ type Spec struct {
 
 	// XXX is just used so thema can detect a breaking change at version 1.0
 	Xxx string `json:"xxx,omitempty"`
+}
+
+func (s *Spec) Validate(major int, minor int) error {
+	if major != 1 {
+		return fmt.Errorf("expecting major version = 1")
+	}
+	if len(s.Name) < 1 {
+		return fmt.Errorf("missing name")
+	}
+	if len(s.Items) < 1 {
+		return fmt.Errorf("missing items")
+	}
+	for idx, item := range s.Items {
+		if len(item.Value) < 1 {
+			return fmt.Errorf("missing item value (item[%d])", idx)
+		}
+		switch item.Type {
+		case ItemTypeDashboardByTag:
+		case ItemTypeDashboardByUid:
+		default:
+			return fmt.Errorf("invalid item type (item[%d])", idx)
+		}
+	}
+	return nil
 }

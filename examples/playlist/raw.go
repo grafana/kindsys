@@ -107,12 +107,28 @@ func (k *rawPlaylistKind) Read(reader io.Reader, strict bool) (kindsys.Resource,
 		},
 		ReadSpec: func(iter *jsoniter.Iterator) error {
 			if major == 1 {
-				rV1 = &ResourceV1{}
+				rV1 = &ResourceV1{StaticMeta: static, CommonMeta: common}
 				iter.ReadVal(&rV1.Spec)
+				if iter.Error == nil && strict {
+					err := rV1.Spec.Validate(major, minor)
+					if err != nil {
+						return err
+					}
+				}
 				obj = rV1
 			} else if major == 0 {
-				rV0 = &ResourceV0{}
+				rV0 = &ResourceV0{StaticMeta: static, CommonMeta: common}
 				iter.ReadVal(&rV0.Spec)
+				if iter.Error == nil && strict {
+					err := rV0.Spec.Validate(major, minor)
+					if err != nil {
+						return err
+					}
+
+					if minor > 0 && rV0.Spec.Uid != rV0.StaticMeta.Name {
+						return fmt.Errorf("the spec.uid must match metadata.name")
+					}
+				}
 				obj = rV0
 			} else {
 				return fmt.Errorf("unknown major version")
@@ -123,22 +139,8 @@ func (k *rawPlaylistKind) Read(reader io.Reader, strict bool) (kindsys.Resource,
 			fmt.Printf("??? unknown")
 		},
 	})
-	obj.SetStaticMetadata(static)
-	obj.SetCommonMetadata(common)
-	if err == nil && strict {
-		switch major {
-		case 0:
-			if rV0 == nil {
-				return obj, fmt.Errorf("setup error")
-			}
-			if minor > 0 && rV0.Spec.Uid != rV0.StaticMeta.Name {
-				return obj, fmt.Errorf("the spec.uid must match metadata.name")
-			}
-		case 1:
-
-		default:
-			return obj, fmt.Errorf("unknown version")
-		}
+	if obj == nil {
+		return nil, fmt.Errorf("missing spec")
 	}
 	return obj, err
 }

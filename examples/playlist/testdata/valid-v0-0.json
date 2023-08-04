@@ -17,17 +17,22 @@
         "interval": "100ms",
         "items": [
             {
-                "type": "dashboard_by_id",
-                "value": "123",
-                "title": "here is a title (later removed)"
+                "type": "dashboard_by_tag",
+                "value": "tagA, tagB",
+                "title": "tagA, tagB"
             },
             {
-                "type": "dashboard_by_tag",
-                "value": "panel-tests",
-                "title": "required in version 0.0 (but not later in this same version)"
+                "type": "dashboard_by_id",
+                "value": "111",
+                "title": "Title for ID(111)"
+            }, 
+            {
+                "type": "dashboard_by_id",
+                "value": "222",
+                "title": "Title for ID(222)"
             }
         ],
-        "name": "Dashboard with id and tag",
+        "name": "Sample playlist",
         "uid": "ba2eea3b"
     }
 }

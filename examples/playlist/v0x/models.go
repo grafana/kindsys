@@ -1,5 +1,7 @@
 package v0x
 
+import "fmt"
+
 //*******************************************************************************************
 // NOTE!!
 // This file is exploring generating the JSONSchema from golang... but that is paused for now
@@ -51,4 +53,36 @@ type Spec struct {
 	// Unique playlist identifier. Generated on creation, either by the
 	// creator of the playlist of by the application.
 	Uid string `json:"uid"`
+}
+
+func (s *Spec) Validate(major int, minor int) error {
+	if major != 0 {
+		return fmt.Errorf("expecting major version = 0")
+	}
+	if len(s.Name) < 1 {
+		return fmt.Errorf("missing name")
+	}
+	if len(s.Items) < 1 {
+		return fmt.Errorf("missing items")
+	}
+	for idx, item := range s.Items {
+		if len(item.Value) < 1 {
+			return fmt.Errorf("missing item value (item[%d])", idx)
+		}
+		if minor == 0 && len(item.Title) < 1 {
+			return fmt.Errorf("missing item title (item[%d])", idx)
+		}
+
+		switch item.Type {
+		case ItemTypeDashboardById:
+		case ItemTypeDashboardByTag:
+		case ItemTypeDashboardByUid:
+			if minor == 0 {
+				return fmt.Errorf("(item[%d]) dashboard_by_uid added at v0.1", idx)
+			}
+		default:
+			return fmt.Errorf("invalid item type (item[%d])", idx)
+		}
+	}
+	return nil
 }
