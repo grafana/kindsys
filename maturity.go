@@ -1,42 +1,60 @@
 package kindsys
 
-import "fmt"
-
-// TODO docs
-type Maturity string
-
-const (
-	MaturityMerged       Maturity = "merged"
-	MaturityExperimental Maturity = "experimental"
-	MaturityStable       Maturity = "stable"
-	MaturityMature       Maturity = "mature"
+import (
+	"bytes"
+	"encoding/json"
 )
 
-func maturityIdx(m Maturity) int {
-	// icky to do this globally, this is effectively setting a default
-	if string(m) == "" {
-		m = MaturityMerged
+type Maturity int8
+
+const (
+	MaturityUnknown Maturity = iota
+	MaturityMerged
+	MaturityExperimental
+	MaturityStable
+	MaturityMature
+)
+
+func (s Maturity) String() string {
+	switch s {
+	case MaturityMerged:
+		return "merged"
+	case MaturityExperimental:
+		return "experimental"
+	case MaturityStable:
+		return "stable"
+	case MaturityMature:
+		return "mature"
 	}
+	return "unknown"
+}
 
-	for i, ms := range maturityOrder {
-		if m == ms {
-			return i
-		}
+// MarshalJSON marshals the enum as a quoted json string
+func (s Maturity) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(s.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+// UnmarshalJSON convert a quoted json string to the enum value
+func (s *Maturity) UnmarshalJSON(b []byte) error {
+	var j string
+	err := json.Unmarshal(b, &j)
+	if err != nil {
+		return err
 	}
-	panic(fmt.Sprintf("unknown maturity milestone %s", m))
-}
-
-var maturityOrder = []Maturity{
-	MaturityMerged,
-	MaturityExperimental,
-	MaturityStable,
-	MaturityMature,
-}
-
-func (m Maturity) Less(om Maturity) bool {
-	return maturityIdx(m) < maturityIdx(om)
-}
-
-func (m Maturity) String() string {
-	return string(m)
+	switch j {
+	case "merged":
+		*s = MaturityMerged
+	case "experimental":
+		*s = MaturityExperimental
+	case "stable":
+		*s = MaturityStable
+	case "mature":
+		*s = MaturityMature
+	default:
+		*s = MaturityUnknown
+	}
+	return nil
 }

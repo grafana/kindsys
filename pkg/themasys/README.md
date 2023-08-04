@@ -1,4 +1,6 @@
-# Kind System
+# Thema based Kind System
+
+This is an implementation of the kindsys interface using a thema backed implementation.
 
 This package contains Grafana's kind system, which defines the rules that govern all Grafana kind definitions, including both core and plugin kinds. It contains many contracts on which public promises of backwards compatibility are made. All changes must be considered with care.
 

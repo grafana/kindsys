@@ -64,7 +64,7 @@ func (j *lmox) Generate(kind themasys.Kind) (codejen.Files, error) {
 		return codejen.Files{*f}, nil
 	}
 
-	if comm.Maturity.Less(kindsys.MaturityStable) {
+	if comm.Maturity < kindsys.MaturityStable {
 		sfg.Schema = kind.Lineage().Latest()
 		return do(sfg, "x")
 	}

@@ -19,7 +19,7 @@
                 "title": "required in version 0.0 (but not later in this same version)"
             }
         ],
-        "name": "Dashboard with id and tag",
+        "name": "items should not yet know about uid types",
         "uid": "ba2eea3b"
     }
 }

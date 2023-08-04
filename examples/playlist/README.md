@@ -1,9 +1,17 @@
 # Playlist examples
-This package explores how kindsys can implement the playlist kind.
+This package explores a few options for implementing a playlist kind with kindsys.
+
+Specifically, this implements three options:
+1. Schemas defined in cue using thema
+2. Direct golang validation
+3. Schemas (and validation) based on jsonschema
+
 
 ### Why playlist?  
 
-It is a silly, but simple and illustrative example that can exercise real world requirements.
+The playlist object is simple and can be used to illustrate key requirements.
+Specifically this requires a database lookup for migrations.
+
 
 ### History
 

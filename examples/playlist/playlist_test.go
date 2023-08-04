@@ -10,13 +10,21 @@ import (
 )
 
 func TestThemaVersion(t *testing.T) {
-	themasys, err := GetThemaKind()
+	sys, err := GetThemaKind()
 	require.NoError(t, err)
 
-	checkValidVersion(t, themasys)
+	checkValidVersion(t, sys)
 
 	// Thema is not yet using the resource version to validate a payload
 	// checkInvalidVersion(t, themasys)
+}
+
+func TestSanthoshVersion(t *testing.T) {
+	sys, err := GetThemaKind()
+	require.NoError(t, err)
+
+	checkValidVersion(t, sys)
+	checkInvalidVersion(t, sys)
 }
 
 func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {

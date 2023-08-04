@@ -8,7 +8,9 @@ require (
 	github.com/grafana/codejen v0.0.4-0.20230321061741-77f656893a3d
 	github.com/grafana/cuetsy v0.1.11
 	github.com/grafana/thema v0.0.0-20230801151112-711d7fd5162f
+	github.com/json-iterator/go v1.1.12
 	github.com/matryer/is v1.4.1
+	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/stretchr/testify v1.8.2
 	github.com/yalue/merged_fs v1.2.2
 	k8s.io/apimachinery v0.26.2
@@ -34,7 +36,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.10.0 // indirect

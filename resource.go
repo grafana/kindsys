@@ -1,7 +1,9 @@
 package kindsys
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -92,6 +94,32 @@ func (s StaticMetadata) FullIdentifier() FullIdentifier {
 		Namespace: s.Namespace,
 		Name:      s.Name,
 	}
+}
+
+// GetAPIVersion returns the k8s style group + version
+func (s StaticMetadata) GetAPIVersion() string {
+	return s.Group + "/" + s.Version
+}
+
+func (s *StaticMetadata) setGroupVersionFromAPI(gv string) error {
+	// this can be the internal version for the legacy kube types
+	// TODO once we've cleared the last uses as strings, this special case should be removed.
+	if (len(gv) == 0) || (gv == "/") {
+		return nil
+	}
+
+	switch strings.Count(gv, "/") {
+	case 0:
+		s.Group = ""
+		s.Version = gv
+	case 1:
+		i := strings.Index(gv, "/")
+		s.Group = gv[:i]
+		s.Version = gv[i+1:]
+	default:
+		return fmt.Errorf("unexpected GroupVersion string: %v", gv)
+	}
+	return nil
 }
 
 type Identifier struct {
