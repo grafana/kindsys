@@ -38,7 +38,7 @@
       "additionalProperties": false,
       "properties": {
         "title": {
-          "description": "Title is an unused property -- it will be removed in the future",
+          "description": "The title displayed in the UI",
           "type": "string"
         },
         "type": {
@@ -52,7 +52,8 @@
       },
       "required": [
         "type",
-        "value"
+        "value",
+        "title"
       ],
       "type": "object"
     },

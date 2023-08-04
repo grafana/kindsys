@@ -16,7 +16,7 @@ func TestThemaVersion(t *testing.T) {
 	checkValidVersion(t, sys)
 
 	// Thema is not yet using the resource version to validate a payload
-	// checkInvalidVersion(t, themasys)
+	//checkInvalidVersion(t, sys)
 }
 
 func TestSanthoshVersion(t *testing.T) {

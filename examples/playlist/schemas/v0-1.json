@@ -22,7 +22,7 @@
           "type": "string"
         },
         "uid": {
-          "description": "Unique playlist identifier. Generated on creation, either by the creator of the playlist of by the application.",
+          "description": "Unique playlist identifier. Generated on creation, either by the creator of the playlist of by the application. NOTE: must match the k8s name",
           "type": "string"
         }
       },
@@ -37,6 +37,10 @@
     "PlaylistItem": {
       "additionalProperties": false,
       "properties": {
+        "title": {
+          "description": "Title is an unused property -- it will be removed in the future",
+          "type": "string"
+        },
         "type": {
           "$ref": "#/definitions/PlaylistItemType",
           "description": "Type of the item."
