@@ -85,30 +85,30 @@ func ReadResourceJSON(reader io.Reader, builder JSONResourceBuilder) error {
 										return fmt.Errorf("invalid updatedTimestamp format // %w", err)
 									}
 									common.UpdateTimestamp = t
-								// case "origin.name":
-								// 	if common.Origin == nil {
-								// 		common.Origin = &ResourceOriginInfo{}
-								// 	}
-								// 	common.Origin.Name = val
-								// case "origin.path":
-								// 	if common.Origin == nil {
-								// 		common.Origin = &ResourceOriginInfo{}
-								// 	}
-								// 	common.Origin.Path = val
-								// case "origin.key":
-								// 	if common.Origin == nil {
-								// 		common.Origin = &ResourceOriginInfo{}
-								// 	}
-								// 	common.Origin.Key = val
-								// case "origin.timestamp":
-								// 	if common.Origin == nil {
-								// 		common.Origin = &ResourceOriginInfo{}
-								// 	}
-								// 	t, err := time.Parse(time.RFC3339, val)
-								// 	if err != nil {
-								// 		return fmt.Errorf("invalid updatedTimestamp format // %w", err)
-								// 	}
-								// 	common.Origin.Timestamp = &t
+								case "origin.name":
+									if common.Origin == nil {
+										common.Origin = &ResourceOriginInfo{}
+									}
+									common.Origin.Name = val
+								case "origin.path":
+									if common.Origin == nil {
+										common.Origin = &ResourceOriginInfo{}
+									}
+									common.Origin.Path = val
+								case "origin.key":
+									if common.Origin == nil {
+										common.Origin = &ResourceOriginInfo{}
+									}
+									common.Origin.Key = val
+								case "origin.timestamp":
+									if common.Origin == nil {
+										common.Origin = &ResourceOriginInfo{}
+									}
+									t, err := time.Parse(time.RFC3339, val)
+									if err != nil {
+										return fmt.Errorf("invalid updatedTimestamp format // %w", err)
+									}
+									common.Origin.Timestamp = &t
 								default:
 									fmt.Printf("grafana anno> %s = %v\n", g, v)
 								}
@@ -187,13 +187,13 @@ func WriteResourceJSON(obj Resource, stream *jsoniter.Stream) error {
 	isMore = writeOptionalString(false, prefix+"createdBy", common.CreatedBy, stream)
 	isMore = writeOptionalString(isMore, prefix+"updatedBy", common.UpdatedBy, stream)
 
-	// origin := common.Origin
-	// if origin != nil && origin.Key != "" {
-	// 	isMore = writeOptionalString(isMore, prefix+"origin.name", origin.Name, stream)
-	// 	isMore = writeOptionalString(isMore, prefix+"origin.path", origin.Path, stream)
-	// 	isMore = writeOptionalString(isMore, prefix+"origin.key", origin.Key, stream)
-	// 	isMore = writeOptionalTime(isMore, prefix+"origin.timestamp", origin.Timestamp, stream)
-	// }
+	origin := common.Origin
+	if origin != nil && origin.Key != "" {
+		isMore = writeOptionalString(isMore, prefix+"origin.name", origin.Name, stream)
+		isMore = writeOptionalString(isMore, prefix+"origin.path", origin.Path, stream)
+		isMore = writeOptionalString(isMore, prefix+"origin.key", origin.Key, stream)
+		isMore = writeOptionalTime(isMore, prefix+"origin.timestamp", origin.Timestamp, stream)
+	}
 	if stream.Error != nil {
 		return stream.Error
 	}

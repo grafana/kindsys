@@ -200,6 +200,8 @@ type CommonMetadata struct {
 	// UpdatedBy is a string which indicates the user or process which last updated the resource.
 	// Implementations may choose what this indicator should be.
 	UpdatedBy string `json:"updatedBy"`
+	// Describe where the resource came from
+	Origin *ResourceOriginInfo `json:"origin"`
 
 	// ExtraFields stores implementation-specific metadata.
 	// Not all Client implementations are required to honor all ExtraFields keys.
@@ -251,6 +253,26 @@ func (b *BasicMetadataObject) SetStaticMetadata(m StaticMetadata) {
 // CustomMetadata returns the object's CustomMetadata
 func (b *BasicMetadataObject) CustomMetadata() CustomMetadata {
 	return b.CustomMeta
+}
+
+// ResourceOriginInfo is saved in annotations.  This is used to identify where the resource came from
+// This object can model the same data as our existing provisioning table or a more general git sync
+type ResourceOriginInfo struct {
+	// Name of the origin/provisioning source
+	Name string `json:"name,omitempty"`
+
+	// The path within the named origin above (external_id in the existing dashboard provisioning)
+	Path string `json:"path,omitempty"`
+
+	// Verification/identification key (check_sum in existing dashboard provisioning)
+	Key string `json:"key,omitempty"`
+
+	// Origin modification timestamp when the resource was saved
+	// This will be before the resource updated time
+	Timestamp *time.Time `json:"time,omitempty"`
+
+	// Avoid extending
+	_ interface{}
 }
 
 // TODO delete these?
