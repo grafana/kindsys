@@ -1,10 +1,11 @@
-package kindsys
+package themasys
 
 import (
-	"github.com/grafana/kindsys/encoding"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/grafana/kindsys/pkg/themasys/encoding"
+	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/thema"
 )

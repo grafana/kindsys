@@ -1,16 +1,19 @@
-package kindsys
+package themasys
 
-import "github.com/grafana/thema"
+import (
+	"github.com/grafana/kindsys"
+	"github.com/grafana/thema"
+)
 
 // CommonProperties contains the metadata common to all categories of kinds.
 type CommonProperties struct {
-	Name              string   `json:"name"`
-	PluralName        string   `json:"pluralName"`
-	MachineName       string   `json:"machineName"`
-	PluralMachineName string   `json:"pluralMachineName"`
-	LineageIsGroup    bool     `json:"lineageIsGroup"`
-	Maturity          Maturity `json:"maturity"`
-	Description       string   `json:"description,omitempty"`
+	Name              string           `json:"name"`
+	PluralName        string           `json:"pluralName"`
+	MachineName       string           `json:"machineName"`
+	PluralMachineName string           `json:"pluralMachineName"`
+	LineageIsGroup    bool             `json:"lineageIsGroup"`
+	Maturity          kindsys.Maturity `json:"maturity"`
+	Description       string           `json:"description,omitempty"`
 }
 
 // CoreProperties represents the static properties in the definition of a

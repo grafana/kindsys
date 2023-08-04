@@ -1,51 +1,11 @@
-package kindsys
+package themasys
 
 import (
-	"fmt"
-
+	"github.com/grafana/kindsys"
 	"github.com/grafana/thema"
 
-	"github.com/grafana/kindsys/encoding"
+	"github.com/grafana/kindsys/pkg/themasys/encoding"
 )
-
-// TODO docs
-type Maturity string
-
-const (
-	MaturityMerged       Maturity = "merged"
-	MaturityExperimental Maturity = "experimental"
-	MaturityStable       Maturity = "stable"
-	MaturityMature       Maturity = "mature"
-)
-
-func maturityIdx(m Maturity) int {
-	// icky to do this globally, this is effectively setting a default
-	if string(m) == "" {
-		m = MaturityMerged
-	}
-
-	for i, ms := range maturityOrder {
-		if m == ms {
-			return i
-		}
-	}
-	panic(fmt.Sprintf("unknown maturity milestone %s", m))
-}
-
-var maturityOrder = []Maturity{
-	MaturityMerged,
-	MaturityExperimental,
-	MaturityStable,
-	MaturityMature,
-}
-
-func (m Maturity) Less(om Maturity) bool {
-	return maturityIdx(m) < maturityIdx(om)
-}
-
-func (m Maturity) String() string {
-	return string(m)
-}
 
 // Kind is a runtime representation of a Grafana kind definition.
 //
@@ -111,7 +71,7 @@ type Kind interface {
 
 	// Maturity indicates the maturity of this kind, one of the enum of values we
 	// accept in the maturity field of the kind definition.
-	Maturity() Maturity
+	Maturity() kindsys.Maturity
 
 	// Props returns a [SomeKindProps], representing the properties
 	// of the kind as declared in the .cue source. The underlying type is
@@ -149,7 +109,7 @@ type ResourceKind interface {
 
 	// FromBytes takes a []byte and a decoder, validates it against schema, and
 	// if validation is successful, unmarshals it into an UnstructuredResource.
-	FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error)
+	FromBytes(b []byte, codec Decoder) (*kindsys.UnstructuredResource, error)
 
 	// Group returns the kind's group, as defined in the group field of the kind definition.
 	//
@@ -211,7 +171,7 @@ type Composable interface {
 //
 // A TypedCore is created by calling [BindCoreResource] on a [Core] with a
 // Go type to which it is assignable (see [thema.BindType]).
-type TypedCore[R Resource] interface {
+type TypedCore[R kindsys.Resource] interface {
 	Core
 
 	// TypeFromBytes is the same as [Core.FromBytes], but returns an instance of the
@@ -227,7 +187,7 @@ type TypedCore[R Resource] interface {
 //
 // A TypedCustom is created by calling [BindCustomResource] on a [Custom] with a
 // Go type to which it is assignable (see [thema.BindType]).
-type TypedCustom[R Resource] interface {
+type TypedCustom[R kindsys.Resource] interface {
 	Custom
 
 	// TypeFromBytes is the same as [Custom.FromBytes], but returns an instance of the

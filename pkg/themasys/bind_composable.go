@@ -1,6 +1,9 @@
-package kindsys
+package themasys
 
-import "github.com/grafana/thema"
+import (
+	"github.com/grafana/kindsys"
+	"github.com/grafana/thema"
+)
 
 // genericComposable is a general representation of a parsed and validated
 // Composable kind.
@@ -9,7 +12,7 @@ type genericComposable struct {
 	lin thema.Lineage
 }
 
-func (k genericComposable) Maturity() Maturity {
+func (k genericComposable) Maturity() kindsys.Maturity {
 	return k.def.Properties.Maturity
 }
 

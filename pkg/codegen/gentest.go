@@ -11,7 +11,7 @@ import (
 
 	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/codejen"
-	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 	"github.com/grafana/thema"
 	"github.com/stretchr/testify/require"
 )
@@ -95,28 +95,28 @@ func (genTest GenTest) Run(inner func(t *testing.T) codejen.Files) {
 	}
 }
 
-func (genTest GenTest) ModuleToCoreKind(modulePath string) (kindsys.Core, error) {
+func (genTest GenTest) ModuleToCoreKind(modulePath string) (themasys.Core, error) {
 	overlayFS, err := dirToPrefixedFS(modulePath, "")
 	if err != nil {
 		return nil, err
 	}
 
-	cueInstance, err := kindsys.BuildInstance(genTest.themaRuntime.Context(), ".", "kind", overlayFS)
+	cueInstance, err := themasys.BuildInstance(genTest.themaRuntime.Context(), ".", "kind", overlayFS)
 	if err != nil {
 		return nil, fmt.Errorf("could not load kindsys instance: %w", err)
 	}
 
-	props, err := kindsys.ToKindProps[kindsys.CoreProperties](cueInstance)
+	props, err := themasys.ToKindProps[themasys.CoreProperties](cueInstance)
 	if err != nil {
 		return nil, fmt.Errorf("could not convert cue value to kindsys props: %w", err)
 	}
 
-	kindDefinition := kindsys.Def[kindsys.CoreProperties]{
+	kindDefinition := themasys.Def[themasys.CoreProperties]{
 		V:          cueInstance,
 		Properties: props,
 	}
 
-	boundKind, err := kindsys.BindCore(genTest.themaRuntime, kindDefinition)
+	boundKind, err := themasys.BindCore(genTest.themaRuntime, kindDefinition)
 	if err != nil {
 		return nil, fmt.Errorf("could not bind kind definition to kind: %w", err)
 	}

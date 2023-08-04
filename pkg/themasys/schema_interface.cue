@@ -1,4 +1,4 @@
-package kindsys
+package themasys
 
 // The schema interfaces defined in this file are meta-schemas. They are shared
 // contracts between the producers (composable kinds, defined in Grafana

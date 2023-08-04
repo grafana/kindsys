@@ -1,9 +1,11 @@
-package kindsys
+package themasys
 
 import (
-	"cuelang.org/go/cue"
 	"encoding/json"
-	"github.com/grafana/kindsys/encoding"
+
+	"cuelang.org/go/cue"
+	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys/encoding"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/vmux"
 )
@@ -89,14 +91,14 @@ type grafanaShape struct {
 }
 
 // FIXME this is a fugly temporary hack - make this go away when we have clarity on our different shapes and the types line up
-func grafanaShapeToUnstructured(k resourceKind, inst *thema.Instance) (*UnstructuredResource, error) {
+func grafanaShapeToUnstructured(k resourceKind, inst *thema.Instance) (*kindsys.UnstructuredResource, error) {
 	gs := grafanaShape{}
 	err := inst.Underlying().Decode(&gs)
 	if err != nil {
 		return nil, err
 	}
 
-	u := &UnstructuredResource{}
+	u := &kindsys.UnstructuredResource{}
 
 	u.StaticMeta.Group = k.Group()
 	u.StaticMeta.Kind = k.Name()

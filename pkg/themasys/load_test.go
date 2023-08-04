@@ -1,12 +1,12 @@
-package kindsys_test
+package themasys_test
 
 import (
 	"testing"
 
-	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 )
 
 func TestFramework(t *testing.T) {
 	// please don't panic, that's all I ask
-	_ = kindsys.CUEFramework(nil)
+	_ = themasys.CUEFramework(nil)
 }

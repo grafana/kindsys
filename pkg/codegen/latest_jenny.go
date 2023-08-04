@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/grafana/codejen"
-	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 )
 
 // LatestJenny returns a jenny that runs another jenny for only the latest
@@ -32,7 +32,7 @@ func (j *latestj) JennyName() string {
 	return "LatestJenny"
 }
 
-func (j *latestj) Generate(kind kindsys.Kind) (*codejen.File, error) {
+func (j *latestj) Generate(kind themasys.Kind) (*codejen.File, error) {
 	comm := kind.Props().Common()
 	sfg := SchemaForGen{
 		Name:    comm.Name,

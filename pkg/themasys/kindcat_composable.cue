@@ -1,4 +1,4 @@
-package kindsys
+package themasys
 
 // Composable is a category of kind that provides schema elements for
 // composition into Core and Custom kinds. Grafana plugins

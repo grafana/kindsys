@@ -1,6 +1,7 @@
-package kindsys
+package themasys
 
 import (
+	"github.com/grafana/kindsys"
 	"github.com/grafana/thema"
 )
 
@@ -11,7 +12,7 @@ type genericCustom struct {
 	lin thema.Lineage
 }
 
-func (k genericCustom) FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error) {
+func (k genericCustom) FromBytes(b []byte, codec Decoder) (*kindsys.UnstructuredResource, error) {
 	inst, err := bytesToAnyInstance(k, b, codec)
 	if err != nil {
 		return nil, err
@@ -53,7 +54,7 @@ func (k genericCustom) MachineName() string {
 }
 
 // Maturity returns the Maturity property
-func (k genericCustom) Maturity() Maturity {
+func (k genericCustom) Maturity() kindsys.Maturity {
 	return k.def.Properties.Maturity
 }
 
@@ -83,7 +84,7 @@ func BindCustom(rt *thema.Runtime, def Def[CustomProperties], opts ...thema.Bind
 }
 
 // TODO docs
-func BindCustomResource[R Resource](k Custom) (TypedCustom[R], error) {
+func BindCustomResource[R kindsys.Resource](k Custom) (TypedCustom[R], error) {
 	// TODO implement me
 	panic("implement me")
 }

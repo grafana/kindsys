@@ -6,20 +6,20 @@ import (
 	"path/filepath"
 
 	"github.com/grafana/codejen"
-	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 	"github.com/grafana/thema"
 )
 
-type OneToOne codejen.OneToOne[kindsys.Kind]
-type OneToMany codejen.OneToMany[kindsys.Kind]
-type ManyToOne codejen.ManyToOne[kindsys.Kind]
-type ManyToMany codejen.ManyToMany[kindsys.Kind]
+type OneToOne codejen.OneToOne[themasys.Kind]
+type OneToMany codejen.OneToMany[themasys.Kind]
+type ManyToOne codejen.ManyToOne[themasys.Kind]
+type ManyToMany codejen.ManyToMany[themasys.Kind]
 
 // ForLatestSchema returns a [SchemaForGen] for the latest schema in the
-// provided [kindsys.Kind]'s lineage.
+// provided [themasys.Kind]'s lineage.
 //
 // TODO this will be replaced by thema-native constructs
-func ForLatestSchema(k kindsys.Kind) SchemaForGen {
+func ForLatestSchema(k themasys.Kind) SchemaForGen {
 	comm := k.Props().Common()
 	return SchemaForGen{
 		Name:    comm.Name,

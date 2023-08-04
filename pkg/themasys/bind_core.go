@@ -1,6 +1,7 @@
-package kindsys
+package themasys
 
 import (
+	"github.com/grafana/kindsys"
 	"github.com/grafana/thema"
 )
 
@@ -24,7 +25,7 @@ func (k genericCore) Group() string {
 	return k.def.Properties.CRD.Group
 }
 
-func (k genericCore) FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error) {
+func (k genericCore) FromBytes(b []byte, codec Decoder) (*kindsys.UnstructuredResource, error) {
 	inst, err := bytesToAnyInstance(k, b, codec)
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (k genericCore) MachineName() string {
 	return k.def.Properties.MachineName
 }
 
-func (k genericCore) Maturity() Maturity {
+func (k genericCore) Maturity() kindsys.Maturity {
 	return k.def.Properties.Maturity
 }
 
@@ -73,7 +74,7 @@ func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOpti
 }
 
 // TODO docs
-func BindCoreResource[R Resource](k Core) (TypedCore[R], error) {
+func BindCoreResource[R kindsys.Resource](k Core) (TypedCore[R], error) {
 	// TODO implement me
 	panic("implement me")
 }

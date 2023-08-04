@@ -1,4 +1,4 @@
-package kindsys
+package themasys
 
 import "errors"
 
