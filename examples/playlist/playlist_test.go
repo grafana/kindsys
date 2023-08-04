@@ -20,7 +20,7 @@ func TestThemaVersion(t *testing.T) {
 }
 
 func TestSanthoshVersion(t *testing.T) {
-	sys, err := GetThemaKind()
+	sys, err := GetSanthoshKind()
 	require.NoError(t, err)
 
 	checkValidVersion(t, sys)
@@ -36,10 +36,10 @@ func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {
 
 	for _, path := range validFiles {
 		raw, err := os.ReadFile(path)
-		require.NoError(t, err)
+		require.NoError(t, err, path)
 
 		obj, err := k.Read(bytes.NewReader(raw), true)
-		require.NoError(t, err)
+		require.NoError(t, err, path)
 		common := obj.CommonMetadata()
 		require.Equal(t, "me", common.CreatedBy)
 		require.Equal(t, "you", common.UpdatedBy)
@@ -55,7 +55,7 @@ func checkInvalidVersion(t *testing.T, k kindsys.ResourceKind) {
 
 	for _, path := range validFiles {
 		raw, err := os.ReadFile(path)
-		require.NoError(t, err)
+		require.NoError(t, err, path)
 
 		obj, err := k.Read(bytes.NewReader(raw), true)
 		require.Error(t, err, path)

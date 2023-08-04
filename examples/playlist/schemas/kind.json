@@ -28,7 +28,8 @@
       "changelog": [
         "removed the dashboard_by_id enumeration type",
         "removed the PlaylistItem.title property",
-        "remove the spec.uid property"
+        "remove the spec.uid property",
+        "TODO! added xxx so thema will detect a breaking version change"
       ]
     }
   ]
