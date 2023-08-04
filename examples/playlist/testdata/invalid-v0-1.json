@@ -1,5 +1,5 @@
 {
-    "apiVersion": "playlists.ext.grafana.com/v0-0",
+    "apiVersion": "playlists.ext.grafana.com/v0-1",
     "kind": "Playlist",
     "metadata": {
         "annotations": {
@@ -9,7 +9,7 @@
         },
         "creationTimestamp": "2023-07-26T22:54:16Z",
         "name": "ba2eea3b",
-        "namespace": "org-22",
+        "namespace": "default",
         "resourceVersion": "123456",
         "uid": "63396a47-eed8-46c3-859a-5dbac7c2b241"
     },
@@ -23,11 +23,13 @@
             },
             {
                 "type": "dashboard_by_tag",
-                "value": "panel-tests",
-                "title": "required in version 0.0 (but not later in this same version)"
+                "value": "panel-tests"
+            },
+            {
+                "type": "dashboard_by_uid",
+                "value": "XYZ"
             }
         ],
-        "name": "Dashboard with id and tag",
-        "uid": "ba2eea3b"
+        "name": "missing spec.uid (it gets removed in the next version)"
     }
 }

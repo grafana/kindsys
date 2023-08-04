@@ -1,5 +1,5 @@
 {
-    "apiVersion": "ext.playlists.grafana.com/v0-0",
+    "apiVersion": "playlists.ext.grafana.com/v0-0",
     "kind": "Playlist",
     "metadata": {
         "namespace": "default",
@@ -20,6 +20,6 @@
             }
         ],
         "name": "Dashboard with id and tag",
-        "uid": "ba2eea3b-d42c-4893-b522-6bf3b67efdc5"
+        "uid": "ba2eea3b"
     }
 }

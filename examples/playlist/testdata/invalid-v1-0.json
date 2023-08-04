@@ -1,5 +1,5 @@
 {
-    "apiVersion": "playlists.ext.grafana.com/v0-0",
+    "apiVersion": "playlists.ext.grafana.com/v1-0",
     "kind": "Playlist",
     "metadata": {
         "annotations": {
@@ -9,7 +9,7 @@
         },
         "creationTimestamp": "2023-07-26T22:54:16Z",
         "name": "ba2eea3b",
-        "namespace": "org-22",
+        "namespace": "default",
         "resourceVersion": "123456",
         "uid": "63396a47-eed8-46c3-859a-5dbac7c2b241"
     },
@@ -17,17 +17,15 @@
         "interval": "100ms",
         "items": [
             {
-                "type": "dashboard_by_id",
-                "value": "123",
-                "title": "here is a title (later removed)"
+                "type": "dashboard_by_tag",
+                "value": "panel-tests"
             },
             {
-                "type": "dashboard_by_tag",
-                "value": "panel-tests",
-                "title": "required in version 0.0 (but not later in this same version)"
+                "type": "dashboard_by_id",
+                "value": "This should not be valid!"
             }
         ],
-        "name": "Dashboard with id and tag",
-        "uid": "ba2eea3b"
+        "name": "Dashboard with tag and uid (no internal id)",
+        "xxx": "just here for the change detection version bypass"
     }
 }
