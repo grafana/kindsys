@@ -1,6 +1,9 @@
 package kindsys
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/grafana/thema"
 )
 
@@ -9,6 +12,9 @@ import (
 type genericCustom struct {
 	def Def[CustomProperties]
 	lin thema.Lineage
+
+	// map of string name of slot to the currently composed contents of the slot
+	composed map[string][]Composable
 }
 
 func (k genericCustom) FromBytes(b []byte, codec Decoder) (*UnstructuredResource, error) {
@@ -68,11 +74,49 @@ func (k genericCustom) Lineage() thema.Lineage {
 }
 
 func (k genericCustom) Compose(slot Slot, kinds ...Composable) (Custom, error) {
-	// TODO implement composition generically once we can fully describe a slot declaratively
-	return nil, &ErrNoSlotInKind{
-		Slot: slot,
-		Kind: k,
+	// first, check that this kind supports this slot
+	if k.def.Properties.Slots[slot.Name] != slot {
+		return nil, &ErrNoSlotInKind{
+			Slot: slot,
+			Kind: k,
+		}
 	}
+
+	schif, err := FindSchemaInterface(slot.SchemaInterface)
+	if err != nil {
+		panic(fmt.Sprintf("unreachable - slot was for nonexistent schema interface %s which should have been rejected at bind time", slot.SchemaInterface))
+	}
+
+	// then check that all provided kinds are implementors of the slot
+	for _, kind := range kinds {
+		if kind.Implements().Name() != schif.Name() {
+			return nil, &ErrKindDoesNotImplementInterface{
+				Kind:      kind,
+				Interface: schif,
+			}
+		}
+	}
+
+	// Inputs look good. Make a copy with our built-up compose map
+	com := make(map[string][]Composable)
+	for k, v := range k.composed {
+		com[k] = v
+	}
+
+	var all []Composable
+	copy(all, com[slot.Name])
+	all = append(all, kinds...)
+	// Sort to ensure deterministic output of validation error messages, etc.
+	sort.Slice(all, func(i, j int) bool {
+		return all[i].Name() < all[j].Name()
+	})
+	com[slot.Name] = all
+
+	return genericCustom{
+		def:      k.def,
+		lin:      k.lin,
+		composed: com,
+	}, nil
 }
 
 // BindCustom creates a Custom-implementing type from a def, runtime, and opts
