@@ -9,12 +9,19 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-// weird that we may want this public... but ¯\_(ツ)_/¯
+// weird that we may want this public... but ¯\_(ツ)_/¯ lets work with it for now
 type JSONResourceBuilder struct {
-	SetStaticMetadata func(v StaticMetadata)
-	SetCommonMetadata func(v CommonMetadata)
-	SetAnnotation     func(key string, val string)
+	// Called when the group+version+kind have been read
+	SetGroupVersionKind func(group, version, kind string) error
 
+	// Called when a non-standard annotation field is found
+	// (before the metadata callback)
+	SetAnnotation func(key string, val string)
+
+	// Called after the metadata tag is closed
+	SetMetadata func(s StaticMetadata, c CommonMetadata)
+
+	// Called when the parse finds a spec element
 	ReadSpec   func(iter *jsoniter.Iterator) error
 	ReadStatus func(iter *jsoniter.Iterator) error
 	ReadSub    func(name string, iter *jsoniter.Iterator) error
@@ -24,7 +31,6 @@ func ReadResourceJSON(reader io.Reader, builder JSONResourceBuilder) error {
 	iter := jsoniter.Parse(jsoniter.ConfigDefault, reader, 1024)
 
 	static := StaticMetadata{}
-	common := CommonMetadata{}
 
 	for l1Field := iter.ReadObject(); l1Field != ""; l1Field = iter.ReadObject() {
 		err := iter.Error
@@ -34,8 +40,12 @@ func ReadResourceJSON(reader io.Reader, builder JSONResourceBuilder) error {
 
 		case "kind":
 			static.Kind = iter.ReadString()
+			if err == nil && builder.SetGroupVersionKind != nil {
+				err = builder.SetGroupVersionKind(static.Group, static.Version, static.Kind)
+			}
 
 		case "metadata":
+			common := CommonMetadata{}
 			for l2Field := iter.ReadObject(); l2Field != ""; l2Field = iter.ReadObject() {
 				switch l2Field {
 				case "namespace":
@@ -138,11 +148,19 @@ func ReadResourceJSON(reader io.Reader, builder JSONResourceBuilder) error {
 					return iter.Error
 				}
 			}
+			builder.SetMetadata(static, common)
+
 		case "spec":
 			err = builder.ReadSpec(iter)
 		case "status":
+			if builder.ReadStatus == nil {
+				return fmt.Errorf("unsupported subresource")
+			}
 			err = builder.ReadStatus(iter)
 		default:
+			if builder.ReadSub == nil {
+				return fmt.Errorf("unsupported subresource")
+			}
 			err = builder.ReadSub(l1Field, iter)
 		}
 		if err != nil {
@@ -152,9 +170,6 @@ func ReadResourceJSON(reader io.Reader, builder JSONResourceBuilder) error {
 			return iter.Error
 		}
 	}
-
-	builder.SetStaticMetadata(static)
-	builder.SetCommonMetadata(common)
 	return iter.Error
 }
 

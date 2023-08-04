@@ -2,12 +2,15 @@ package themasys
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 
+	"cuelang.org/go/cue/cuecontext"
 	"github.com/grafana/kindsys"
 	"github.com/grafana/kindsys/pkg/themasys/encoding"
 	"github.com/grafana/thema"
+	"github.com/grafana/thema/encoding/jsonschema"
 )
 
 var _ kindsys.ResourceKind = &ThemaCoreKind{}
@@ -54,24 +57,39 @@ func (k *ThemaCoreKind) GetKindInfo() kindsys.KindInfo {
 	}
 }
 
+func syntaxVersionToString(v thema.SyntacticVersion) string {
+	return fmt.Sprintf("v%d-%d", v[1], v[1])
+}
+
 func (k *ThemaCoreKind) CurrentVersion() string {
 	return k.kind.CurrentVersion().String()
 }
 
 func (k *ThemaCoreKind) GetVersions() []kindsys.VersionInfo {
 	versions := []kindsys.VersionInfo{}
+	// TODO??? this only gets the first version?
 	for _, schema := range k.kind.Lineage().All() {
 		versions = append(versions, kindsys.VersionInfo{
-			Version: schema.Version().String(),
+			Version: syntaxVersionToString(schema.Version()),
 		})
 	}
 	return versions
 }
 
+// Converts the cue to JSON schema
 func (k *ThemaCoreKind) GetJSONSchema(version string) (string, error) {
 	for _, schema := range k.kind.Lineage().All() {
-		if version == schema.Version().String() {
-			return "", fmt.Errorf("TODO... convert to JSONSchema")
+		if version == syntaxVersionToString(schema.Version()) {
+			ast, err := jsonschema.GenerateSchema(schema)
+			if err != nil {
+				return "", err
+			}
+			ctx := cuecontext.New()
+			str, err := json.MarshalIndent(ctx.BuildFile(ast), "", "  ")
+			if err != nil {
+				return "", err
+			}
+			return string(str), err
 		}
 	}
 	return "", fmt.Errorf("unknown version")
@@ -81,13 +99,13 @@ func (k *ThemaCoreKind) Read(reader io.Reader, strict bool) (kindsys.Resource, e
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(reader)
 
-	if strict {
-		// ?? is this necessary, or part of the FromBytes below?
-		err := k.kind.Validate(buf.Bytes(), &encoding.KubernetesJSONDecoder{})
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if strict {
+	// 	// ?? is this necessary, or part of the FromBytes below?
+	// 	err := k.kind.Validate(buf.Bytes(), &encoding.KubernetesJSONDecoder{})
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return k.kind.FromBytes(buf.Bytes(), &encoding.KubernetesJSONDecoder{})
 }

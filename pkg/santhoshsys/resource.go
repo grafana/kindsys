@@ -43,15 +43,26 @@ func NewResourceKind(sfs fs.FS) (kindsys.ResourceKind, error) {
 	return m, nil
 }
 
-func (m *resourceKindFromManifest) GetMachineNames() kindsys.MachineNames {
-	return m.names
+func (k *resourceKindFromManifest) GetMachineNames() kindsys.MachineNames {
+	return k.names
 }
 
-func (m *resourceKindFromManifest) Read(reader io.Reader, strict bool) (kindsys.Resource, error) {
+func (k *resourceKindFromManifest) Read(reader io.Reader, strict bool) (kindsys.Resource, error) {
 	obj := &kindsys.UnstructuredResource{}
 	err := kindsys.ReadResourceJSON(reader, kindsys.JSONResourceBuilder{
-		SetStaticMetadata: func(v kindsys.StaticMetadata) { obj.StaticMeta = v },
-		SetCommonMetadata: func(v kindsys.CommonMetadata) { obj.CommonMeta = v },
+		SetGroupVersionKind: func(group, version, kind string) error {
+			if group != k.info.Group {
+				return fmt.Errorf("invalid group")
+			}
+			if kind != k.info.Kind {
+				return fmt.Errorf("invalid kind")
+			}
+			return nil
+		},
+		SetMetadata: func(s kindsys.StaticMetadata, c kindsys.CommonMetadata) {
+			obj.StaticMeta = s
+			obj.CommonMeta = c
+		},
 		ReadSpec: func(iter *jsoniter.Iterator) error {
 			obj.Spec = make(map[string]any)
 			iter.ReadVal(&obj.Spec)
@@ -74,15 +85,7 @@ func (m *resourceKindFromManifest) Read(reader io.Reader, strict bool) (kindsys.
 	}
 
 	if strict {
-		meta := obj.StaticMetadata()
-		if meta.Group != m.info.Group {
-			return obj, fmt.Errorf("wrong group")
-		}
-		if meta.Kind != m.info.Kind {
-			return obj, fmt.Errorf("wrong kind")
-		}
-
-		schema, ok := m.parsed[meta.Version]
+		schema, ok := k.parsed[obj.StaticMeta.Version]
 		if !ok || schema == nil {
 			return obj, fmt.Errorf("unknown version")
 		}
@@ -95,6 +98,6 @@ func (m *resourceKindFromManifest) Read(reader io.Reader, strict bool) (kindsys.
 	return obj, err
 }
 
-func (m *resourceKindFromManifest) Migrate(obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
+func (k *resourceKindFromManifest) Migrate(obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
 	return nil, fmt.Errorf("TODO")
 }

@@ -17,12 +17,14 @@ type UnstructuredResource struct {
 // UnmarshalJSON allows creating a resource from json
 func (u *UnstructuredResource) UnmarshalJSON(b []byte) error {
 	return ReadResourceJSON(bytes.NewReader(b), JSONResourceBuilder{
-		SetStaticMetadata: func(v StaticMetadata) { u.StaticMeta = v },
-		SetCommonMetadata: func(v CommonMetadata) { u.CommonMeta = v },
 		ReadSpec: func(iter *jsoniter.Iterator) error {
 			u.Spec = make(map[string]any)
 			iter.ReadVal(&u.Spec)
 			return iter.Error
+		},
+		SetMetadata: func(s StaticMetadata, c CommonMetadata) {
+			u.StaticMeta = s
+			u.CommonMeta = c
 		},
 		SetAnnotation: func(key, val string) {
 			fmt.Printf("??? unknown")

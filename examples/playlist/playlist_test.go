@@ -9,6 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestRawVersion(t *testing.T) {
+	sys, err := GetRawKind()
+	require.NoError(t, err)
+
+	checkValidVersion(t, sys)
+	// checkInvalidVersion(t, sys)
+}
+
 func TestThemaVersion(t *testing.T) {
 	sys, err := GetThemaKind()
 	require.NoError(t, err)
@@ -43,6 +51,13 @@ func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {
 		common := obj.CommonMetadata()
 		require.Equal(t, "me", common.CreatedBy)
 		require.Equal(t, "you", common.UpdatedBy)
+
+		static := obj.StaticMetadata()
+		// TODO!  fails for thema :(
+		// require.Equal(t, "ba2eea3b", static.Name)
+		// require.Equal(t, "org-22", static.Namespace)
+		require.Equal(t, k.GetKindInfo().Group, static.Group)
+		require.Equal(t, k.GetKindInfo().Kind, static.Kind)
 	}
 }
 

@@ -47,5 +47,11 @@ In this example, we will define three versions
 
 
 
+## TODO
 
+thema:
+* use the apiVersion to specify the resource version
+* thema version should list all versions
 
+nice to have:
+* can we define 1.0 as the "next" version, not the current one?

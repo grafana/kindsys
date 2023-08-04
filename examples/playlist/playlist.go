@@ -12,6 +12,10 @@ import (
 //go:embed *.cue schemas/*.json
 var packageFS embed.FS
 
+func GetRawKind() (kindsys.ResourceKind, error) {
+	return &rawPlaylistKind{}, nil
+}
+
 func GetThemaKind() (*themasys.ThemaCoreKind, error) {
 	cue, err := packageFS.ReadFile("playlist.cue")
 	if err != nil {
