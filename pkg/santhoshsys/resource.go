@@ -1,6 +1,7 @@
 package santhoshsys
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/fs"
@@ -15,14 +16,16 @@ var _ kindsys.ResourceKind = &resourceKindFromManifest{}
 type resourceKindFromManifest struct {
 	kindFromManifest // the base properties
 
-	//
-	names kindsys.MachineNames
+	names    kindsys.MachineNames
+	migrator kindsys.ResourceMigrator
 }
 
 // Load a jsonschema based kind from a file system
 // the file system will have a manifest that exists
-func NewResourceKind(sfs fs.FS) (kindsys.ResourceKind, error) {
-	m := &resourceKindFromManifest{}
+func NewResourceKind(sfs fs.FS, mig kindsys.ResourceMigrator) (kindsys.ResourceKind, error) {
+	m := &resourceKindFromManifest{
+		migrator: mig,
+	}
 	info, err := m.init(sfs)
 	if err != nil {
 		return m, err
@@ -98,6 +101,9 @@ func (k *resourceKindFromManifest) Read(reader io.Reader, strict bool) (kindsys.
 	return obj, err
 }
 
-func (k *resourceKindFromManifest) Migrate(obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
-	return nil, fmt.Errorf("TODO")
+func (k *resourceKindFromManifest) Migrate(ctx context.Context, obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
+	if k.migrator == nil {
+		return nil, fmt.Errorf("no migrator registered")
+	}
+	return k.migrator(ctx, obj, targetVersion)
 }

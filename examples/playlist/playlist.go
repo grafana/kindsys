@@ -13,7 +13,7 @@ import (
 var packageFS embed.FS
 
 func GetRawKind() (kindsys.ResourceKind, error) {
-	return &rawPlaylistKind{}, nil
+	return NewRawPlaylistKind(&dummyLookupHooks{}), nil
 }
 
 func GetThemaKind() (*themasys.ThemaCoreKind, error) {
@@ -29,6 +29,5 @@ func GetSanthoshKind() (kindsys.ResourceKind, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return santhoshsys.NewResourceKind(schemas)
+	return santhoshsys.NewResourceKind(schemas, newMigrator(&dummyLookupHooks{}))
 }

@@ -2,6 +2,7 @@ package themasys
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -110,6 +111,6 @@ func (k *ThemaCoreKind) Read(reader io.Reader, strict bool) (kindsys.Resource, e
 	return k.kind.FromBytes(buf.Bytes(), &encoding.KubernetesJSONDecoder{})
 }
 
-func (k *ThemaCoreKind) Migrate(obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
+func (k *ThemaCoreKind) Migrate(ctx context.Context, obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
 	return nil, fmt.Errorf("TODO implement version migration")
 }

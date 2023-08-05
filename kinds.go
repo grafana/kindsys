@@ -70,6 +70,7 @@ type Kind interface {
 	GetJSONSchema(version string) (string, error)
 }
 
+// A kind that manages a k8s style resource
 type ResourceKind interface {
 	Kind
 
@@ -81,8 +82,12 @@ type ResourceKind interface {
 	Read(reader io.Reader, strict bool) (Resource, error)
 
 	// Migrate from one object to another version
-	Migrate(obj Resource, targetVersion string) (Resource, error)
+	// NOTE, this may require database calls
+	Migrate(ctx context.Context, obj Resource, targetVersion string) (Resource, error)
 }
+
+// Function that can be used to migrate resources
+type ResourceMigrator = func(ctx context.Context, obj Resource, targetVersion string) (Resource, error)
 
 type ComposableKind interface {
 	Kind
@@ -98,7 +103,7 @@ type ComposableKind interface {
 	Validate(obj any, sourceVersion string) error
 
 	// Migrate from one version of the object to another
-	Migrate(obj any, sourceVersion string, targetVersion string) (any, error)
+	Migrate(ctx context.Context, obj any, sourceVersion string, targetVersion string) (any, error)
 }
 
 type KindRegistry interface {

@@ -11,7 +11,7 @@ import (
 	"github.com/santhosh-tekuri/jsonschema"
 )
 
-// JUST USED while testing things -- with private package
+// Not sure this should be public/exposed, but takes any resource kind and writes out a manifest
 func CreateResourceKindManifest(k kindsys.ResourceKind) ([]byte, error) {
 	names := k.GetMachineNames()
 	info := &manifest{

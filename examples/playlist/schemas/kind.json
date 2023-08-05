@@ -1,7 +1,7 @@
 {
   "group": "playlists.ext.grafana.com",
   "kind": "Playlist",
-  "description": "Describes a set of dashboards that should be displayed in a loop",
+  "description": "A set of dashboards that will be displayed in a loop (dummy for testing)",
   "maturity": "merged",
   "machineName": {
     "plural": "playlists",

@@ -2,7 +2,7 @@ package playlist
 
 name:        "Playlist"
 maturity:    "merged"
-description: "A playlist is a series of dashboards that is automatically rotated in the browser, on a configurable interval."
+description: "A set of dashboards that will be displayed in a loop (dummy for testing)"
 
 lineage: schemas: [
 	{

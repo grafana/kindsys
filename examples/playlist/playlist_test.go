@@ -2,10 +2,12 @@ package playlist
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/santhoshsys"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,6 +17,10 @@ func TestRawVersion(t *testing.T) {
 
 	checkValidVersion(t, sys)
 	checkInvalidVersion(t, sys)
+
+	manifest, err := santhoshsys.CreateResourceKindManifest(sys)
+	require.NoError(t, err)
+	fmt.Printf("KIND: %s\n", string(manifest))
 }
 
 func TestThemaVersion(t *testing.T) {

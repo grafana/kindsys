@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -13,7 +14,15 @@ import (
 var _ kindsys.ResourceKind = &rawPlaylistKind{}
 
 // This implements a playlist directly in golang
-type rawPlaylistKind struct{}
+type rawPlaylistKind struct {
+	migrator kindsys.ResourceMigrator
+}
+
+func NewRawPlaylistKind(hooks MigrationLookupHooks) kindsys.ResourceKind {
+	return &rawPlaylistKind{
+		migrator: newMigrator(hooks),
+	}
+}
 
 func (k *rawPlaylistKind) GetMachineNames() kindsys.MachineNames {
 	return kindsys.MachineNames{
@@ -26,7 +35,8 @@ func (k *rawPlaylistKind) GetKindInfo() kindsys.KindInfo {
 	return kindsys.KindInfo{
 		Group:       "playlists.ext.grafana.com",
 		Kind:        "Playlist",
-		Description: "A set of dashboards that will be displayed in a loop",
+		Description: "A set of dashboards that will be displayed in a loop (dummy for testing)",
+		Maturity:    kindsys.MaturityMerged,
 	}
 }
 
@@ -51,7 +61,7 @@ func (k *rawPlaylistKind) GetVersions() []kindsys.VersionInfo {
 			},
 		},
 		{
-			Version:         "v0-1",
+			Version:         "v1-0",
 			SoftwareVersion: "v10.5", // when we remove internal id support
 			Changelog: []string{
 				"removed the dashboard_by_id enumeration type",
@@ -145,6 +155,6 @@ func (k *rawPlaylistKind) Read(reader io.Reader, strict bool) (kindsys.Resource,
 	return obj, err
 }
 
-func (k *rawPlaylistKind) Migrate(obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
-	return nil, fmt.Errorf("TODO implement version migration")
+func (k *rawPlaylistKind) Migrate(ctx context.Context, obj kindsys.Resource, targetVersion string) (kindsys.Resource, error) {
+	return k.migrator(ctx, obj, targetVersion)
 }
