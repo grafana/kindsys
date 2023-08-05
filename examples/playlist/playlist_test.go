@@ -47,9 +47,10 @@ func TestSanthoshVersion(t *testing.T) {
 
 func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {
 	validFiles := []string{
-		"testdata/valid-v0-0.json",
-		"testdata/valid-v0-1.json",
-		"testdata/valid-v1-0.json",
+		"testdata/valid-mig-v0-0.json",
+		"testdata/valid-mig-v0-1.json",
+		"testdata/valid-mig-v1-0.json",
+		"testdata/valid-ok-v0-1.json",
 	}
 
 	for _, path := range validFiles {
@@ -91,9 +92,9 @@ func checkInvalidVersion(t *testing.T, k kindsys.ResourceKind) {
 }
 
 func checkMigrations(t *testing.T, k kindsys.ResourceKind) {
-	src00, e00 := os.ReadFile("testdata/valid-v0-0.json")
-	src01, e01 := os.ReadFile("testdata/valid-v0-1.json")
-	src10, e10 := os.ReadFile("testdata/valid-v1-0.json")
+	src00, e00 := os.ReadFile("testdata/valid-mig-v0-0.json")
+	src01, e01 := os.ReadFile("testdata/valid-mig-v0-1.json")
+	src10, e10 := os.ReadFile("testdata/valid-mig-v1-0.json")
 	require.NoError(t, e00)
 	require.NoError(t, e01)
 	require.NoError(t, e10)
@@ -114,7 +115,8 @@ func checkMigrations(t *testing.T, k kindsys.ResourceKind) {
 	// Migrate UP
 	out, err := k.Migrate(ctx, v00, "v0-1")
 	require.NoError(t, err)
-	after, err := json.Marshal(out)
+	after, err := json.MarshalIndent(out, "", "  ")
 	require.NoError(t, err)
+	fmt.Printf("AFTER: %s\n", string(after))
 	require.JSONEq(t, string(src01), string(after))
 }
