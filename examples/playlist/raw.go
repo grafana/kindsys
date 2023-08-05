@@ -149,6 +149,9 @@ func (k *rawPlaylistKind) Read(reader io.Reader, strict bool) (kindsys.Resource,
 			fmt.Printf("??? unknown")
 		},
 	})
+	if err != nil {
+		return nil, err
+	}
 	if obj == nil {
 		return nil, fmt.Errorf("missing spec")
 	}

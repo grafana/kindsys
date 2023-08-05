@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestRawVersion(t *testing.T) {
 	manifest, err := santhoshsys.CreateResourceKindManifest(sys)
 	require.NoError(t, err)
 	require.NotEmpty(t, manifest)
-	fmt.Printf("KIND: %s\n", string(manifest))
+	//fmt.Printf("KIND: %s\n", string(manifest))
 }
 
 func TestThemaVersion(t *testing.T) {
@@ -35,6 +34,7 @@ func TestThemaVersion(t *testing.T) {
 
 	// Thema is not yet using the resource version to validate a payload
 	//checkInvalidVersion(t, sys)
+	//checkMigrations(t, sys)
 }
 
 func TestSanthoshVersion(t *testing.T) {
@@ -43,6 +43,7 @@ func TestSanthoshVersion(t *testing.T) {
 
 	checkValidVersion(t, sys)
 	checkInvalidVersion(t, sys)
+	checkMigrations(t, sys)
 }
 
 func checkValidVersion(t *testing.T, k kindsys.ResourceKind) {
@@ -112,11 +113,43 @@ func checkMigrations(t *testing.T, k kindsys.ResourceKind) {
 
 	ctx := context.Background()
 
-	// Migrate UP
-	out, err := k.Migrate(ctx, v00, "v0-1")
+	// Migrate (UP): v0.0 > v0.1
+	src := "v0-0"
+	dst := "v0-1"
+	out, err := k.Migrate(ctx, v00, dst)
 	require.NoError(t, err)
 	after, err := json.MarshalIndent(out, "", "  ")
 	require.NoError(t, err)
-	fmt.Printf("AFTER: %s\n", string(after))
-	require.JSONEq(t, string(src01), string(after))
+	//fmt.Printf("AFTER: %s\n", string(after))
+	require.JSONEq(t, string(src01), string(after), "%s to %s", src, dst)
+
+	// Migrate (UP): v0.1 > v1.0
+	src = dst
+	dst = "v1-0"
+	out, err = k.Migrate(ctx, out, dst)
+	require.NoError(t, err)
+	after, err = json.MarshalIndent(out, "", "  ")
+	require.NoError(t, err)
+	//fmt.Printf("AFTER: %s\n", string(after))
+	require.JSONEq(t, string(src10), string(after), "%s to %s", src, dst)
+
+	// Migrate (Down): v1.0 > v0.1
+	src = dst
+	dst = "v0-1"
+	out, err = k.Migrate(ctx, out, dst)
+	require.NoError(t, err)
+	after, err = json.MarshalIndent(out, "", "  ")
+	require.NoError(t, err)
+	//fmt.Printf("AFTER: %s\n", string(after))
+	require.JSONEq(t, string(src01), string(after), "%s to %s", src, dst)
+
+	// Migrate (Down): v0.1 > v0.0
+	src = dst
+	dst = "v0-0"
+	out, err = k.Migrate(ctx, out, dst)
+	require.NoError(t, err)
+	after, err = json.MarshalIndent(out, "", "  ")
+	require.NoError(t, err)
+	//fmt.Printf("AFTER: %s\n", string(after))
+	require.JSONEq(t, string(src00), string(after), "%s to %s", src, dst)
 }

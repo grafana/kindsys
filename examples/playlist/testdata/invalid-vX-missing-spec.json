@@ -1,9 +1,9 @@
 {
-    "apiVersion": "playlists.ext.grafana.com/v0-0",
-    "kind": "Playlist",
-    "metadata": {
-        "namespace": "default",
-        "resourceVersion": "123456",
-        "uid": "63396a47-eed8-46c3-859a-5dbac7c2b241"
-    }
+  "apiVersion": "playlists.ext.grafana.com/v0-0",
+  "kind": "Playlist",
+  "metadata": {
+    "namespace": "default",
+    "resourceVersion": "123456",
+    "uid": "63396a47-eed8-46c3-859a-5dbac7c2b241"
+  }
 }

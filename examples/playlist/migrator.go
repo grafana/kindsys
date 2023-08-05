@@ -67,6 +67,9 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 			return nil, err
 		}
 
+		static := obj.StaticMetadata()
+		static.Version = targetVersion
+
 		switch srcMajor {
 		case 0:
 			spec := &v0x.Spec{}
@@ -74,9 +77,6 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 			if err != nil {
 				return nil, err
 			}
-
-			static := obj.StaticMetadata()
-			static.Version = targetVersion
 			if static.Name == "" {
 				static.Name = spec.Uid
 			}
@@ -84,7 +84,21 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 			case 0:
 				switch targetMinor {
 				case 0:
-					return nil, fmt.Errorf("TODO... migrate down")
+					// Migrate down (uid to id if necessary)
+					for i, item := range spec.Items {
+						if item.Type == v0x.ItemTypeDashboardByUid {
+							id, title, err := hooks.GetTitleAndIDFromUID(ctx, item.Value)
+							if err != nil {
+								return nil, err
+							}
+							spec.Items[i].Type = v0x.ItemTypeDashboardById
+							spec.Items[i].Title = title
+							spec.Items[i].Value = fmt.Sprintf("%d", id)
+						}
+						if spec.Items[i].Title == "" {
+							spec.Items[i].Title = spec.Items[i].Value
+						}
+					}
 				case 1:
 					// Migrate minor up (id to uid if possible)
 					for i, item := range spec.Items {
@@ -101,6 +115,7 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 								}
 							}
 						}
+						spec.Items[i].Title = "" // clear the title
 					}
 				}
 				return &ResourceV0{
@@ -128,7 +143,6 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 					StaticMeta: static,
 					CommonMeta: obj.CommonMetadata(),
 					Spec:       targetSpec,
-					//CustomMeta: obj.CustomMetadata(),
 				}, nil
 
 			default:
@@ -141,7 +155,43 @@ func newMigrator(hooks MigrationLookupHooks) kindsys.ResourceMigrator {
 			if err != nil {
 				return nil, err
 			}
-			return nil, fmt.Errorf("TODO... actually migrate v0")
+
+			if targetMajor == 0 {
+				targetSpec := v0x.Spec{
+					Interval: spec.Interval,
+					Name:     spec.Name,
+					Items:    make([]v0x.Item, len(spec.Items)),
+					Uid:      static.Name,
+				}
+				for i, item := range spec.Items {
+					itemV0 := v0x.Item{Value: item.Value}
+					switch item.Type {
+					case v1x.ItemTypeDashboardByTag:
+						itemV0.Type = v0x.ItemTypeDashboardByTag
+					case v1x.ItemTypeDashboardByUid:
+						itemV0.Type = v0x.ItemTypeDashboardByUid
+						if targetMinor == 0 {
+							id, title, err := hooks.GetTitleAndIDFromUID(ctx, item.Value)
+							if err != nil {
+								return nil, err
+							}
+							itemV0.Title = title
+							itemV0.Value = fmt.Sprintf("%d", id)
+						}
+					}
+					if targetMinor == 0 && itemV0.Title == "" {
+						itemV0.Title = item.Value
+					}
+					targetSpec.Items[i] = itemV0
+				}
+				return &ResourceV0{
+					StaticMeta: static,
+					CommonMeta: obj.CommonMetadata(),
+					Spec:       targetSpec,
+				}, nil
+			} else {
+				return nil, fmt.Errorf("invalid migration")
+			}
 		}
 
 		return nil, fmt.Errorf("invalid version")
