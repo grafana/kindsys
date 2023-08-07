@@ -72,6 +72,11 @@ func BindCore(rt *thema.Runtime, def Def[CoreProperties], opts ...thema.BindOpti
 	}, nil
 }
 
+// TODO remove this func and change BindCore to take kindsys-specific BindOptions
+func BindCoreWithGoMigrations(rt *thema.Runtime, def Def[CoreProperties], fns []ResourceMigration, opts ...thema.BindOption) (Core, error) {
+	return BindCore(rt, def, append(opts, thema.ImperativeLenses(toLenses(fns...)...))...)
+}
+
 // TODO docs
 func BindCoreResource[R Resource](k Core) (TypedCore[R], error) {
 	// TODO implement me

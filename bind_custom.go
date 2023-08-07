@@ -82,6 +82,11 @@ func BindCustom(rt *thema.Runtime, def Def[CustomProperties], opts ...thema.Bind
 	}, nil
 }
 
+// TODO remove this func and change BindCustom to take kindsys-specific BindOptions
+func BindCustomWithGoMigrations(rt *thema.Runtime, def Def[CustomProperties], fns []ResourceMigration, opts ...thema.BindOption) (Custom, error) {
+	return BindCustom(rt, def, append(opts, thema.ImperativeLenses(toLenses(fns...)...))...)
+}
+
 // TODO docs
 func BindCustomResource[R Resource](k Custom) (TypedCustom[R], error) {
 	// TODO implement me
