@@ -19,6 +19,6 @@ package kindsys
 //	str = kindsys.Ptr("colorless green ideas sleep furiously")
 //
 // [correct, non-ambiguous]: https://github.com/grafana/grok/issues/1
-func Ptr[T any](v T) *T {
+func ptr[T any](v T) *T {
 	return &v
 }

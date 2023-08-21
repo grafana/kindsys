@@ -1,0 +1,38 @@
+{
+  "apiVersion": "playlists.ext.grafana.com/v0-0",
+  "kind": "Playlist",
+  "metadata": {
+    "annotations": {
+      "grafana.com/createdBy": "me",
+      "grafana.com/updatedBy": "you",
+      "grafana.com/updatedTimestamp": "2023-07-26T15:54:16-07:00"
+    },
+    "creationTimestamp": "2023-07-26T22:54:16Z",
+    "name": "ba2eea3b",
+    "namespace": "org-22",
+    "resourceVersion": "123456",
+    "uid": "63396a47-eed8-46c3-859a-5dbac7c2b241"
+  },
+  "spec": {
+    "interval": "100ms",
+    "items": [
+      {
+        "type": "dashboard_by_tag",
+        "value": "tagA, tagB",
+        "title": "tagA, tagB"
+      },
+      {
+        "type": "dashboard_by_id",
+        "value": "111",
+        "title": "Title for ID(111)"
+      },
+      {
+        "type": "dashboard_by_id",
+        "value": "222",
+        "title": "Title for ID(222)"
+      }
+    ],
+    "name": "Sample playlist",
+    "uid": "ba2eea3b"
+  }
+}

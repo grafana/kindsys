@@ -2,7 +2,7 @@ package kind
 
 import "github.com/grafana/kindsys"
 
-kindsys.Core
+themasys.Core
 name:        "Folder"
 maturity:    "merged"
 description: "A folder is a collection of resources that are grouped together and can share permissions."

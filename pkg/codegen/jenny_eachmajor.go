@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/codejen"
 	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 )
 
 // LatestMajorsOrXJenny returns a jenny that repeats the input for the latest in each major version.
@@ -33,7 +34,7 @@ func (j *lmox) JennyName() string {
 	return "LatestMajorsOrXJenny"
 }
 
-func (j *lmox) Generate(kind kindsys.Kind) (codejen.Files, error) {
+func (j *lmox) Generate(kind themasys.Kind) (codejen.Files, error) {
 	// TODO remove this once codejen catches nils https://github.com/grafana/codejen/issues/5
 	if kind == nil {
 		return nil, nil
@@ -63,7 +64,7 @@ func (j *lmox) Generate(kind kindsys.Kind) (codejen.Files, error) {
 		return codejen.Files{*f}, nil
 	}
 
-	if comm.Maturity.Less(kindsys.MaturityStable) {
+	if comm.Maturity < kindsys.MaturityStable {
 		sfg.Schema = kind.Lineage().Latest()
 		return do(sfg, "x")
 	}

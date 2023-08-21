@@ -1,0 +1,36 @@
+{
+  "group": "playlists.ext.grafana.com",
+  "kind": "Playlist",
+  "description": "A set of dashboards that will be displayed in a loop (dummy for testing)",
+  "maturity": "merged",
+  "machineName": {
+    "plural": "playlists",
+    "singular": "playlist"
+  },
+  "versions": [
+    {
+      "version": "v0-0",
+      "software": "v6.0"
+    },
+    {
+      "version": "v0-1",
+      "software": "v9.1",
+      "changelog": [
+        "adding the dashboard_by_uid type",
+        "deprecating the dashboard_by_id type",
+        "deprecating the PlaylistItem.title property (now optional and unused)",
+        "TODO: verify that k8s name and spec.uid match"
+      ]
+    },
+    {
+      "version": "v1-0",
+      "software": "v10.5",
+      "changelog": [
+        "removed the dashboard_by_id enumeration type",
+        "removed the PlaylistItem.title property",
+        "remove the spec.uid property",
+        "TODO! added xxx so thema will detect a breaking version change"
+      ]
+    }
+  ]
+}

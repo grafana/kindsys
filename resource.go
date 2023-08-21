@@ -1,33 +1,13 @@
 package kindsys
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"time"
 )
 
-// WireFormat enumerates values for possible message wire formats.
-// Constants with these values are in this package with a `WireFormat` prefix.
-type WireFormat int
-
-const (
-	// WireFormatUnknown is an unknown message wire format.
-	WireFormatUnknown WireFormat = iota
-	// WireFormatJSON is a JSON message wire format, which should be handle-able by the `json` package.
-	// (messages which _contain_ JSON, but are not parsable by the go json package should not be
-	// considered to be of the JSON wire format).
-	WireFormatJSON
-)
-
-// UnmarshalConfig is the config used for unmarshaling Resources.
-// It consists of fields that are descriptive of the underlying content, based on knowledge the caller has.
-type UnmarshalConfig struct {
-	// WireFormat is the wire format of the provided payload
-	WireFormat WireFormat
-	// VersionHint is what the client thinks the version is (if non-empty)
-	VersionHint string
-}
-
-// A Resource is a single instance of a Grafana [Kind], either [Core] or [Custom].
+// A Resource is a single instance of a Grafana resources
 //
 // The relationship between Resource and [Kind] is similar to the
 // relationship between objects and classes in conventional object oriented
@@ -41,12 +21,8 @@ type UnmarshalConfig struct {
 // - Some use cases need to operate generically over resources of any kind.
 // - Go generics do not allow the ergonomic expression of certain needed constraints.
 //
-// The [Core] and [Custom] interfaces are intended for the generic operation
-// use case, fulfilling [Resource] using [UnstructuredResource].
-//
 // For known, specific kinds, it is usually possible to rely on code generation
-// to produce a struct that implements [Resource] for each kind. Such a struct
-// can be used as the generic type parameter to create a [TypedCore] or [TypedCustom]
+// to produce a struct that implements [Resource] for each kind.
 type Resource interface {
 	// CommonMetadata returns the Resource's CommonMetadata
 	CommonMetadata() CommonMetadata
@@ -118,6 +94,32 @@ func (s StaticMetadata) FullIdentifier() FullIdentifier {
 		Namespace: s.Namespace,
 		Name:      s.Name,
 	}
+}
+
+// GetAPIVersion returns the k8s style group + version
+func (s StaticMetadata) GetAPIVersion() string {
+	return s.Group + "/" + s.Version
+}
+
+func (s *StaticMetadata) setGroupVersionFromAPI(gv string) error {
+	// this can be the internal version for the legacy kube types
+	// TODO once we've cleared the last uses as strings, this special case should be removed.
+	if (len(gv) == 0) || (gv == "/") {
+		return nil
+	}
+
+	switch strings.Count(gv, "/") {
+	case 0:
+		s.Group = ""
+		s.Version = gv
+	case 1:
+		i := strings.Index(gv, "/")
+		s.Group = gv[:i]
+		s.Version = gv[i+1:]
+	default:
+		return fmt.Errorf("unexpected GroupVersion string: %v", gv)
+	}
+	return nil
 }
 
 type Identifier struct {
@@ -198,6 +200,8 @@ type CommonMetadata struct {
 	// UpdatedBy is a string which indicates the user or process which last updated the resource.
 	// Implementations may choose what this indicator should be.
 	UpdatedBy string `json:"updatedBy"`
+	// Describe where the resource came from
+	Origin *ResourceOriginInfo `json:"origin"`
 
 	// ExtraFields stores implementation-specific metadata.
 	// Not all Client implementations are required to honor all ExtraFields keys.
@@ -249,6 +253,26 @@ func (b *BasicMetadataObject) SetStaticMetadata(m StaticMetadata) {
 // CustomMetadata returns the object's CustomMetadata
 func (b *BasicMetadataObject) CustomMetadata() CustomMetadata {
 	return b.CustomMeta
+}
+
+// ResourceOriginInfo is saved in annotations.  This is used to identify where the resource came from
+// This object can model the same data as our existing provisioning table or a more general git sync
+type ResourceOriginInfo struct {
+	// Name of the origin/provisioning source
+	Name string `json:"name,omitempty"`
+
+	// The path within the named origin above (external_id in the existing dashboard provisioning)
+	Path string `json:"path,omitempty"`
+
+	// Verification/identification key (check_sum in existing dashboard provisioning)
+	Key string `json:"key,omitempty"`
+
+	// Origin modification timestamp when the resource was saved
+	// This will be before the resource updated time
+	Timestamp *time.Time `json:"time,omitempty"`
+
+	// Avoid extending
+	_ interface{}
 }
 
 // TODO delete these?

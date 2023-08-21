@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/grafana/codejen"
-	"github.com/grafana/kindsys"
+	"github.com/grafana/kindsys/pkg/themasys"
 )
 
 // TODO remove this once there's a standard jenny for this...somewhere in core
-func ComposableLatestMajorsOrXJenny(parentdir string, inner codejen.OneToOne[SchemaForGen]) codejen.OneToMany[kindsys.Composable] {
+func ComposableLatestMajorsOrXJenny(parentdir string, inner codejen.OneToOne[SchemaForGen]) codejen.OneToMany[themasys.Composable] {
 	if inner == nil {
 		panic("inner jenny must not be nil")
 	}
@@ -30,8 +30,8 @@ func (j *clmox) JennyName() string {
 	return "ComposableLatestMajorsOrXJenny"
 }
 
-func (j *clmox) Generate(k kindsys.Composable) (codejen.Files, error) {
-	si, err := kindsys.FindSchemaInterface(k.Def().Properties.SchemaInterface)
+func (j *clmox) Generate(k themasys.Composable) (codejen.Files, error) {
+	si, err := themasys.FindSchemaInterface(k.Def().Properties.SchemaInterface)
 	if err != nil {
 		return nil, err
 	}
