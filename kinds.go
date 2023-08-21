@@ -89,6 +89,10 @@ type ResourceKind interface {
 // Function that can be used to migrate resources
 type ResourceMigrator = func(ctx context.Context, obj Resource, targetVersion string) (Resource, error)
 
+// Composable kinds are used within other resources -- they do not exist on their own
+// NOTE: this interface is still an untested sketch.  We need to implement something real
+// before settling on the real method signatures.  However, it is still useful to have the
+// common container metadata so that we can produce consistent docs and clients.
 type ComposableKind interface {
 	Kind
 
@@ -106,6 +110,7 @@ type ComposableKind interface {
 	Migrate(ctx context.Context, obj any, sourceVersion string, targetVersion string) (any, error)
 }
 
+// Not yet implemented, but will be required for kinds that require composition
 type KindRegistry interface {
 	// List the objects that can be saved as k8s style resources
 	GetResourceKinds(ctx context.Context) []ResourceKind
