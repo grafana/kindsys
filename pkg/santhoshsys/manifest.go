@@ -9,6 +9,7 @@ import (
 
 	"github.com/grafana/kindsys"
 	"github.com/santhosh-tekuri/jsonschema"
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 // Not sure this should be public/exposed, but takes any resource kind and writes out a manifest
@@ -47,8 +48,8 @@ type kindFromManifest struct {
 	info     kindsys.KindInfo
 	current  kindsys.VersionInfo
 	versions []kindsys.VersionInfo
-	raw      map[string]string // raw
-	parsed   map[string]*jsonschema.Schema
+	raw      map[string][]byte             // raw
+	parsed   map[string]*jsonschema.Schema // << can we use kube-openapi?
 }
 
 // Load all the schemas
@@ -85,7 +86,7 @@ func (m *kindFromManifest) init(sfs fs.FS) (*manifest, error) {
 	}
 
 	m.versions = make([]kindsys.VersionInfo, 0)
-	m.raw = make(map[string]string)
+	m.raw = make(map[string][]byte)
 	m.parsed = make(map[string]*jsonschema.Schema)
 	hasher := sha256.New()
 
@@ -112,7 +113,7 @@ func (m *kindFromManifest) init(sfs fs.FS) (*manifest, error) {
 			return manifest, fmt.Errorf("error parsing schema: %s // %w", v.Version, err)
 		}
 		m.parsed[v.Version] = sch
-		m.raw[v.Version] = string(data)
+		m.raw[v.Version] = data
 
 		hasher.Reset()
 		hasher.Write(data)
@@ -144,10 +145,11 @@ func (m *kindFromManifest) GetVersions() []kindsys.VersionInfo {
 	return m.versions
 }
 
-func (m *kindFromManifest) GetJSONSchema(version string) (string, error) {
+func (m *kindFromManifest) GetOpenAPIDefinition(version string, ref common.ReferenceCallback) (common.OpenAPIDefinition, error) {
+	api := common.OpenAPIDefinition{}
 	s, ok := m.raw[version]
 	if !ok {
-		return "", fmt.Errorf("unknown version")
+		return api, fmt.Errorf("unknown version")
 	}
-	return s, nil
+	return kindsys.LoadOpenAPIDefinition(s)
 }

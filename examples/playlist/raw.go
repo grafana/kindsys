@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/kindsys/examples/playlist/v0x"
 	"github.com/grafana/kindsys/examples/playlist/v1x"
 	jsoniter "github.com/json-iterator/go"
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 var _ kindsys.ResourceKind = &rawPlaylistKind{}
@@ -74,12 +75,13 @@ func (k *rawPlaylistKind) GetVersions() []kindsys.VersionInfo {
 }
 
 // NOTE: this files are not used to do validation, but can be used generically to describe the kind
-func (k *rawPlaylistKind) GetJSONSchema(version string) (string, error) {
+func (k *rawPlaylistKind) GetOpenAPIDefinition(version string, ref common.ReferenceCallback) (common.OpenAPIDefinition, error) {
+	api := common.OpenAPIDefinition{}
 	s, err := packageFS.ReadFile("schemas/" + version + ".json")
 	if err != nil {
-		return "", fmt.Errorf("unknown schema version")
+		return api, fmt.Errorf("unknown schema version")
 	}
-	return string(s), err
+	return kindsys.LoadOpenAPIDefinition(s)
 }
 
 type ResourceV0 = kindsys.GenericResource[v0x.Spec, kindsys.SimpleCustomMetadata, any]

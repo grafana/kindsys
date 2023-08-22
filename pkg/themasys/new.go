@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/kindsys/pkg/themasys/encoding"
 	"github.com/grafana/thema"
 	"github.com/grafana/thema/encoding/jsonschema"
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 var _ kindsys.ResourceKind = &ThemaCoreKind{}
@@ -78,22 +79,26 @@ func (k *ThemaCoreKind) GetVersions() []kindsys.VersionInfo {
 }
 
 // Converts the cue to JSON schema
-func (k *ThemaCoreKind) GetJSONSchema(version string) (string, error) {
+func (k *ThemaCoreKind) GetOpenAPIDefinition(version string, ref common.ReferenceCallback) (common.OpenAPIDefinition, error) {
+	api := common.OpenAPIDefinition{}
+
 	for _, schema := range k.kind.Lineage().All() {
 		if version == syntaxVersionToString(schema.Version()) {
 			ast, err := jsonschema.GenerateSchema(schema)
 			if err != nil {
-				return "", err
+				return api, err
 			}
 			ctx := cuecontext.New()
-			str, err := json.MarshalIndent(ctx.BuildFile(ast), "", "  ")
+			out, err := json.MarshalIndent(ctx.BuildFile(ast), "", "  ")
 			if err != nil {
-				return "", err
+				return api, err
 			}
-			return string(str), err
+
+			// TODO... not quite the same!
+			return kindsys.LoadOpenAPIDefinition(out)
 		}
 	}
-	return "", fmt.Errorf("unknown version")
+	return api, fmt.Errorf("unknown version")
 }
 
 func (k *ThemaCoreKind) Read(reader io.Reader, strict bool) (kindsys.Resource, error) {
