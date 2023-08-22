@@ -3,6 +3,8 @@ package kindsys
 import (
 	"context"
 	"io"
+
+	"k8s.io/kube-openapi/pkg/common"
 )
 
 type KindInfo struct {
@@ -67,7 +69,7 @@ type Kind interface {
 	// Return a JSON schema definition for the selected version
 	// When composition is required, the slots will have an any node
 	// TODO? include an option to have `AnyOf(latest known options)`
-	GetJSONSchema(version string) (string, error)
+	GetOpenAPIDefinition(version string, ref common.ReferenceCallback) (common.OpenAPIDefinition, error)
 }
 
 // A kind that manages a k8s style resource

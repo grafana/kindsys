@@ -1,11 +1,12 @@
 {
     "cSpell.words": [
         "Finalizers",
-        "themasys",
-        "jsoniter",
         "hasher",
+        "jschema",
+        "jsoniter",
+        "jsonschema",
         "Santhosh",
         "santhoshsys",
-        "jsonschema"
+        "themasys"
     ]
 }

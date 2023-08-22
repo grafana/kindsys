@@ -2,7 +2,6 @@ package themasys
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -60,14 +59,14 @@ lineage: schemas: [{
 			return v.Version
 		}))
 
-	_, err = k.GetJSONSchema("vXYZ (bad version)")
+	_, err = k.GetOpenAPIDefinition("vXYZ (bad version)", kindsys.DummyReferenceCallback())
 	require.Error(t, err, "unknown version")
 
 	// hymm.. this does yet match a user facing format
-	jschema, err := k.GetJSONSchema("v0-0")
+	jschema, err := k.GetOpenAPIDefinition("v0-0", kindsys.DummyReferenceCallback())
 	require.NoError(t, err)
-	require.True(t, json.Valid([]byte(jschema)))
-	fmt.Printf("SCHEMA: %s\n", jschema)
+	require.NotNil(t, jschema.Schema)
+	fmt.Printf("SCHEMA: %v\n", jschema)
 }
 
 func mapSlice[T any, M any](a []T, f func(T) M) []M {

@@ -1,5 +1,25 @@
 package kindsys
 
+import (
+	"encoding/json"
+
+	"k8s.io/kube-openapi/pkg/common"
+	"k8s.io/kube-openapi/pkg/validation/spec"
+)
+
+func LoadOpenAPIDefinition(raw []byte) (common.OpenAPIDefinition, error) {
+	def := common.OpenAPIDefinition{}
+	err := json.Unmarshal(raw, &def.Schema)
+	return def, err
+}
+
+func DummyReferenceCallback() common.ReferenceCallback {
+	return func(path string) spec.Ref {
+		r, _ := spec.NewRef(path)
+		return r
+	}
+}
+
 // Ptr returns a pointer to a value of an arbitrary type.
 //
 // This function is provided to compensate for Grafana's Go code generation that
