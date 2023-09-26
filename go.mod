@@ -71,4 +71,4 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-replace cuelang.org/go => github.com/sdboyer/cue v0.5.0-beta.2.0.20221218111347-341999f48bdb
+replace cuelang.org/go => github.com/grafana/cue v0.0.0-20230926092038-971951014e3f
