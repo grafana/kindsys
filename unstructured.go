@@ -8,9 +8,10 @@ var _ Resource = &UnstructuredResource{}
 // strongly typed, and lacks any user-defined methods that may exist on a
 // kind-specific struct that implements [Resource].
 type UnstructuredResource struct {
-	BasicMetadataObject
-	Spec   map[string]any `json:"spec,omitempty"`
-	Status map[string]any `json:"status,omitempty"`
+	BasicMetadataObject `json:",inline"`
+	Spec                map[string]any `json:"spec,omitempty"`
+	Status              map[string]any `json:"status,omitempty"`
+	// TODO: is there value in storing other subresources in UnstructuredResource?
 }
 
 func (u *UnstructuredResource) SpecObject() any {
@@ -24,32 +25,21 @@ func (u *UnstructuredResource) Subresources() map[string]any {
 }
 
 func (u *UnstructuredResource) Copy() Resource {
-	com := CommonMetadata{
-		UID:               u.CommonMeta.UID,
-		ResourceVersion:   u.CommonMeta.ResourceVersion,
-		CreationTimestamp: u.CommonMeta.CreationTimestamp.UTC(),
-		UpdateTimestamp:   u.CommonMeta.UpdateTimestamp.UTC(),
-		CreatedBy:         u.CommonMeta.CreatedBy,
-		UpdatedBy:         u.CommonMeta.UpdatedBy,
-	}
-
-	copy(u.CommonMeta.Finalizers, com.Finalizers)
-	if u.CommonMeta.DeletionTimestamp != nil {
-		*com.DeletionTimestamp = *(u.CommonMeta.DeletionTimestamp)
-	}
-	for k, v := range u.CommonMeta.Labels {
-		com.Labels[k] = v
-	}
-	com.ExtraFields = mapcopy(u.CommonMeta.ExtraFields)
-
-	cp := UnstructuredResource{
+	n := UnstructuredResource{
+		BasicMetadataObject: BasicMetadataObject{
+			Kind:        u.Kind,
+			APIVersion:  u.APIVersion,
+			Metadata:    u.Metadata.Copy(),
+			GrafanaMeta: u.GrafanaMeta.Copy(),
+			KindMeta:    SimpleCustomMetadata{},
+		},
 		Spec:   mapcopy(u.Spec),
 		Status: mapcopy(u.Status),
 	}
-
-	cp.CommonMeta = com
-	cp.CustomMeta = mapcopy(u.CustomMeta)
-	return &cp
+	for k, v := range u.KindMeta {
+		n.KindMeta[k] = v
+	}
+	return &n
 }
 
 func mapcopy(m map[string]any) map[string]any {

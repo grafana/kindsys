@@ -1,7 +1,9 @@
 package kindsys
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -29,6 +31,16 @@ type UnmarshalConfig struct {
 
 // A Resource is a single instance of a Grafana [Kind], either [Core] or [Custom].
 //
+// A Resource is broadly composed of metadata, spec, and additional "subresources."
+// Metadata is split into three sub-components:
+// - KubeMetadata is the metadata provided in the "metadata" component of a kubernetes resource
+// - GrafanaMetadata is additional, standard Grafana Resource metadata
+// - KindMetadata is metadata specific to the Kind
+// Spec is the Resource's main payload, what could classicly be considered the "body" of the Resource.
+// Subresources are additional components of the Resource which are not considered part of either the metadata or
+// the spec ("body"). For properly-defined Grafana Resources, this will always include the "status" subresource,
+// and may include others on a per-Kind basis.
+//
 // The relationship between Resource and [Kind] is similar to the
 // relationship between objects and classes in conventional object oriented
 // design:
@@ -48,13 +60,24 @@ type UnmarshalConfig struct {
 // to produce a struct that implements [Resource] for each kind. Such a struct
 // can be used as the generic type parameter to create a [TypedCore] or [TypedCustom]
 type Resource interface {
-	// CommonMetadata returns the Resource's CommonMetadata
-	CommonMetadata() CommonMetadata
+	// KubeMetadata returns the kubernetes standard resource metadata
+	KubeMetadata() KubeMetadata
+
+	// GrafanaMetadata returns the grafana metadata for the resource
+	GrafanaMetadata() GrafanaMetadata
+
+	// CustomMetadata returns metadata unique to this Resource's kind, as opposed to Common and Static metadata,
+	// which are the same across all kinds. An object may have no kind-specific CustomMetadata.
+	// CustomMetadata can only be read from this interface, for use with resource.Client implementations,
+	// those who wish to set CustomMetadata should use the interface's underlying type.
+	KindMetadata() CustomMetadata
 
 	// SetCommonMetadata overwrites the CommonMetadata of the object.
 	// Implementations should always overwrite, rather than attempt merges of the metadata.
 	// Callers wishing to merge should get current metadata with CommonMetadata() and set specific values.
-	SetCommonMetadata(metadata CommonMetadata)
+	SetKubeMetadata(metadata KubeMetadata)
+
+	SetGrafanaMetadata(metadata GrafanaMetadata)
 
 	// StaticMetadata returns the Resource's StaticMetadata
 	StaticMetadata() StaticMetadata
@@ -65,17 +88,12 @@ type Resource interface {
 	// Note that StaticMetadata is only mutable in an object create context.
 	SetStaticMetadata(metadata StaticMetadata)
 
-	// CustomMetadata returns metadata unique to this Resource's kind, as opposed to Common and Static metadata,
-	// which are the same across all kinds. An object may have no kind-specific CustomMetadata.
-	// CustomMetadata can only be read from this interface, for use with resource.Client implementations,
-	// those who wish to set CustomMetadata should use the interface's underlying type.
-	CustomMetadata() CustomMetadata
-
 	// SpecObject returns the actual "schema" object, which holds the main body of data
 	SpecObject() any
 
 	// Subresources returns a map of subresource name(s) to the object value for that subresource.
 	// Spec is not considered a subresource, and should only be returned by SpecObject
+	// No guarantees are made that mutations to objects in the map will affect the underlying resource.
 	Subresources() map[string]any
 
 	// Copy returns a full copy of the Resource with all its data
@@ -160,14 +178,12 @@ type ListMetadata struct {
 	ExtraFields map[string]any `json:"extraFields"`
 }
 
-// CommonMetadata is the system-defined common metadata associated with a [Resource].
-// It combines Kubernetes standard metadata with certain Grafana-specific additions.
-//
-// It is analogous to [k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta] in vanilla Kubernetes.
-//
-// TODO generate this from the CUE definition
-// TODO review this for optionality
-type CommonMetadata struct {
+// KubeMetadata is kubernetes object metadata. It does not directly import kubernetes go structs to avoid requiring kubernetes dependencies in projects
+// which use kindsys.
+// TODO: does this matter? Could we just import kubernetes' struct and attach methods we need to it?
+type KubeMetadata struct {
+	Name      string
+	Namespace string
 	// UID is the unique ID of the object. This can be used to uniquely identify objects,
 	// but is not guaranteed to be usable for lookups.
 	UID string `json:"uid"`
@@ -179,6 +195,8 @@ type CommonMetadata struct {
 	// Labels are string key/value pairs attached to the object. They can be used for filtering,
 	// or as additional metadata.
 	Labels map[string]string `json:"labels"`
+	// Annotations
+	Annotations map[string]string `json:"annotations"`
 	// CreationTimestamp indicates when the resource has been created.
 	CreationTimestamp time.Time `json:"creationTimestamp"`
 	// DeletionTimestamp indicates that the resource is pending deletion as of the provided time if non-nil.
@@ -190,6 +208,32 @@ type CommonMetadata struct {
 	// DeletionTimestamp is set to the time of the "delete," and the resource will continue to exist
 	// until the finalizers list is cleared.
 	Finalizers []string `json:"finalizers"`
+}
+
+func (k KubeMetadata) Copy() KubeMetadata {
+	n := KubeMetadata{
+		Name:              k.Name,
+		Namespace:         k.Namespace,
+		UID:               k.UID,
+		ResourceVersion:   k.ResourceVersion,
+		CreationTimestamp: k.CreationTimestamp,
+	}
+	if k.DeletionTimestamp != nil {
+		*n.DeletionTimestamp = *(k.DeletionTimestamp)
+	}
+	copy(n.Finalizers, k.Finalizers)
+	for key, val := range k.Annotations {
+		n.Annotations[key] = val
+	}
+	for key, val := range k.Labels {
+		k.Labels[key] = val
+	}
+	return n
+}
+
+// TODO
+// On encoding to kubernetes, fields in GrafanaMetadata MUST be encoded into annotations with the name "grafana.com/X", where X is the JSON name of the field.
+type GrafanaMetadata struct {
 	// UpdateTimestamp is the timestamp of the last update to the resource.
 	UpdateTimestamp time.Time `json:"updateTimestamp"`
 	// CreatedBy is a string which indicates the user or process which created the resource.
@@ -198,12 +242,10 @@ type CommonMetadata struct {
 	// UpdatedBy is a string which indicates the user or process which last updated the resource.
 	// Implementations may choose what this indicator should be.
 	UpdatedBy string `json:"updatedBy"`
+}
 
-	// ExtraFields stores implementation-specific metadata.
-	// Not all Client implementations are required to honor all ExtraFields keys.
-	// Generally, this field should be shied away from unless you know the specific
-	// Client implementation you're working with and wish to track or mutate extra information.
-	ExtraFields map[string]any `json:"extraFields"`
+func (g GrafanaMetadata) Copy() GrafanaMetadata {
+	return GrafanaMetadata{}
 }
 
 // TODO guard against skew, use indirection through an internal package
@@ -221,34 +263,70 @@ func (s SimpleCustomMetadata) MapFields() map[string]any {
 // BasicMetadataObject provides a Metadata field composed of StaticMetadata and ObjectMetadata, as well as the
 // ObjectMetadata(),SetObjectMetadata(), StaticMetadata(), and SetStaticMetadata() receiver functions.
 type BasicMetadataObject struct {
-	StaticMeta StaticMetadata       `json:"staticMetadata"`
-	CommonMeta CommonMetadata       `json:"commonMetadata"`
-	CustomMeta SimpleCustomMetadata `json:"customMetadata"`
-}
-
-// CommonMetadata returns the object's CommonMetadata
-func (b *BasicMetadataObject) CommonMetadata() CommonMetadata {
-	return b.CommonMeta
-}
-
-// SetCommonMetadata overwrites the ObjectMetadata.Common() supplied by BasicMetadataObject.ObjectMetadata()
-func (b *BasicMetadataObject) SetCommonMetadata(m CommonMetadata) {
-	b.CommonMeta = m
+	Kind        string               `json:"kind"`
+	APIVersion  string               `json:"apiVersion"`
+	Metadata    KubeMetadata         `json:"metadata"`
+	GrafanaMeta GrafanaMetadata      `json:"grafanaMetadata"`
+	KindMeta    SimpleCustomMetadata `json:"kindMetadata"`
 }
 
 // StaticMetadata returns the object's StaticMetadata
 func (b *BasicMetadataObject) StaticMetadata() StaticMetadata {
-	return b.StaticMeta
+	gv := strings.Split(b.APIVersion, "/")
+	g := ""
+	v := ""
+	if len(gv) > 1 {
+		g = gv[0]
+		v = gv[1]
+	} else if len(gv) == 1 {
+		// For kubernetes core resources, the group is empty and only the version appears in the APIVersion string
+		v = gv[0]
+	}
+	return StaticMetadata{
+		Kind:      b.Kind,
+		Group:     g,
+		Version:   v,
+		Namespace: b.Metadata.Namespace,
+		Name:      b.Metadata.Name,
+	}
 }
 
 // SetStaticMetadata overwrites the StaticMetadata supplied by BasicMetadataObject.StaticMetadata()
+// Note that in implementations, this may impact the KubeMetadata, as they have overlapping information.
 func (b *BasicMetadataObject) SetStaticMetadata(m StaticMetadata) {
-	b.StaticMeta = m
+	b.Kind = m.Kind
+	if m.Group != "" {
+		b.APIVersion = fmt.Sprintf("%s/%s", m.Group, m.Version)
+	} else {
+		b.APIVersion = m.Version
+	}
+	b.Metadata.Namespace = m.Namespace
+	b.Metadata.Name = m.Name
 }
 
-// CustomMetadata returns the object's CustomMetadata
-func (b *BasicMetadataObject) CustomMetadata() CustomMetadata {
-	return b.CustomMeta
+// KubeMetadata returns the object's KubeMetadata
+func (b *BasicMetadataObject) KubeMetadata() KubeMetadata {
+	return b.Metadata
+}
+
+// SetKubeMetadata overwrites the KubeMetadata supplied by BasicMetadataObject.KubeMetadata()
+func (b *BasicMetadataObject) SetKubeMetadata(m KubeMetadata) {
+	b.Metadata = m
+}
+
+// GrafanaMetadata returns the object's GrafanaMetadata
+func (b *BasicMetadataObject) GrafanaMetadata() GrafanaMetadata {
+	return b.GrafanaMeta
+}
+
+// SetGrafanaMetadata overwrites the GrafanaMetadata supplied by BasicMetadataObject.GrafanaMetadata()
+func (b *BasicMetadataObject) SetGrafanaMetadata(m GrafanaMetadata) {
+	b.GrafanaMeta = m
+}
+
+// KindMetadata returns the object's CustomMetadata (kind-specific metadata)
+func (b *BasicMetadataObject) KindMetadata() CustomMetadata {
+	return b.KindMeta
 }
 
 // TODO delete these?
