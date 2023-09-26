@@ -105,6 +105,7 @@ _crdSchema: {
 // kinds - the same API patterns (and clients) used to interact with k8s CustomResources.
 Custom: S={
 	_sharedKind
+	_resourceKind
 
 	// group is the unique identifier of owner/grouping of this Custom kind
 	group: =~"^([a-z][a-z0-9-]*[a-z0-9])$"
