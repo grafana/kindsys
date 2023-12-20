@@ -24,10 +24,6 @@ func cueContext() *cue.Context {
 	return ctx
 }
 
-func init() {
-	loadpFrameworkOnce()
-}
-
 func loadpFrameworkOnce() {
 	fwOnce.Do(func() {
 		var err error
@@ -146,7 +142,7 @@ func CUEFramework(ctx *cue.Context) cue.Value {
 		loadpFrameworkOnce()
 		return defaultFramework
 	}
-	// Error guaranteed to be nil here because erroring would have caused init() to panic
+	// Error guaranteed to be nil here because erroring would have caused loadpFrameworkOnce to panic
 	v, _ := doLoadFrameworkCUE(ctx) // nolint:errcheck
 	return v
 }
